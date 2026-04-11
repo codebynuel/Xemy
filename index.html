@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meshy Alternative PoC</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+</head>
+<body>
+
+    <h2>Text/Image to 3D Barebones Tester</h2>
+    
+    <input type="text" id="imageUrl" placeholder="Paste a public image URL..." style="width: 300px;">
+    <button onclick="generateModel()">Generate</button>
+    
+    <p id="statusText">Ready.</p>
+
+    <model-viewer 
+        id="viewer" 
+        auto-rotate 
+        camera-controls 
+        style="width: 500px; height: 500px; background-color: #f0f0f0; display: none;">
+    </model-viewer>
+
+    <script>
+        async function generateModel() {
+            const imgUrl = document.getElementById('imageUrl').value;
+            const status = document.getElementById('statusText');
+            const viewer = document.getElementById('viewer');
+
+            if (!imgUrl) return alert("Paste an image URL first!");
+
+            status.innerText = "Sending to Runpod... (Grab a snack, GPU is spinning up)";
+            viewer.style.display = "none";
+
+            try {
+                const response = await fetch('http://localhost:3000/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageUrl: imgUrl })
+                });
+
+                const data = await response.json();
+
+                if (data.meshUrl) {
+                    status.innerText = "Success! Loading 3D model...";
+                    // Plug the S3 URL from Runpod directly into the viewer
+                    viewer.src = data.meshUrl; 
+                    viewer.style.display = "block";
+                } else {
+                    status.innerText = "Error: Check server logs.";
+                }
+
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Failed to connect to the server.";
+            }
+        }
+    </script>
+</body>
+</html>
