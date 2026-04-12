@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Xemy - Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -30,7 +31,8 @@
                         "inverse-primary":"#8d00e6","on-secondary-fixed":"#003f43",
                         "on-primary-fixed-variant":"#450074","primary-fixed-dim":"#bc6fff",
                         "secondary-container":"#006970","on-secondary-container":"#e3fdff",
-                        "on-error-container":"#ffb2b9","primary-container":"#c683ff","secondary-dim":"#00deec"
+                        "on-error-container":"#ffb2b9","primary-container":"#c683ff","secondary-dim":"#00deec",
+                        "lime":"#b8f147"
                     },
                     borderRadius: { DEFAULT:"0.25rem", lg:"0.5rem", xl:"0.75rem", full:"9999px" },
                     fontFamily: { headline:["Space Grotesk"], body:["Inter"], label:["Manrope"] }
@@ -40,9 +42,15 @@
     </script>
     <style>
         .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
-        .glass-panel { background: rgba(38,37,40,0.6); backdrop-filter: blur(20px); }
-        .neon-glow  { box-shadow: 0 0 15px rgba(207,150,255,0.4); }
         .viewport-gradient { background: radial-gradient(circle at 50% 50%, #1f1f22 0%, #0e0e10 100%); }
+        .panel-scroll::-webkit-scrollbar { width: 4px; }
+        .panel-scroll::-webkit-scrollbar-track { background: transparent; }
+        .panel-scroll::-webkit-scrollbar-thumb { background: #48474a; border-radius: 2px; }
+        .panel-scroll::-webkit-scrollbar-thumb:hover { background: #767577; }
+        /* Expandable sidebar */
+        #icon-rail { width: 56px; transition: width 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+        #icon-rail:hover { width: 200px; }
+        #icon-rail:hover ~ #app-layout { margin-left: 200px; }
     </style>
     <script type="importmap">
     {
@@ -56,165 +64,306 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
-<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 overflow-hidden">
 
-    <!-- Sidebar -->
-    <aside class="flex flex-col fixed left-0 top-0 h-screen w-64 border-r border-[#1f1f22]/15 bg-[#131315] z-50">
-        <div class="p-6">
-            <div class="text-xl font-bold bg-gradient-to-br from-[#cf96ff] to-[#a533ff] bg-clip-text text-transparent font-[Space_Grotesk] tracking-tight">Xemy</div>
-            <div class="text-[10px] text-gray-500 font-label tracking-widest mt-1 opacity-70">V0.1 Alpha</div>
+    <!-- Expandable Sidebar -->
+    <aside id="icon-rail" class="group fixed left-0 top-0 h-screen flex flex-col py-5 px-2 bg-[#111113] border-r border-outline-variant/10 z-50">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 px-1.5 mb-6">
+            <div class="w-9 h-9 min-w-[36px] rounded-xl bg-gradient-to-br from-[#b8f147] to-[#8bc926] flex items-center justify-center">
+                <span class="text-black font-bold text-sm font-headline">X</span>
+            </div>
+            <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-base font-bold bg-gradient-to-br from-[#b8f147] to-[#8bc926] bg-clip-text text-transparent font-headline">Xemy</span>
         </div>
-        <nav class="flex-1 px-4 space-y-2">
-            <a class="flex items-center gap-3 px-4 py-3 text-[#cf96ff] font-bold border-r-2 border-[#cf96ff] bg-[#cf96ff]/5 font-[Space_Grotesk] tracking-tight transition-colors duration-200" href="#">
-                <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
+
+        <!-- Nav -->
+        <nav class="flex flex-col gap-1 flex-1">
+            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-lime bg-lime/10 transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">view_in_ar</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Workspace</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-[Space_Grotesk] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200" href="#">
-                <span class="material-symbols-outlined">inventory_2</span><span>Assets</span>
+            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">inventory_2</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">My Assets</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-[Space_Grotesk] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200" href="#">
-                <span class="material-symbols-outlined">auto_awesome</span><span>Generations</span>
+            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">groups</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Community</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-[Space_Grotesk] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200" href="#">
-                <span class="material-symbols-outlined">settings</span><span>Settings</span>
+            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">school</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Learn</span>
             </a>
         </nav>
-        <div class="p-6 border-t border-outline-variant/10">
-            <div class="flex items-center gap-3 px-2">
-                <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20">
-                    <span id="user-initials" class="text-xs font-bold text-primary">?</span>
+
+        <!-- Bottom -->
+        <div class="flex flex-col gap-1">
+            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">settings</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Settings</span>
+            </a>
+            <div class="flex items-center gap-3 px-2 py-2 mt-1">
+                <div class="w-8 h-8 min-w-[32px] rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20 cursor-pointer">
+                    <span id="user-initials" class="text-[10px] font-bold text-lime">?</span>
                 </div>
-                <div class="flex flex-col">
-                    <span class="text-xs font-bold" id="user-name">Loading...</span>
-                    <span class="text-[10px] text-on-surface-variant" id="user-plan">-</span>
-                </div>
+                <span id="sidebar-user-name" class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium text-on-surface truncate"></span>
             </div>
         </div>
     </aside>
 
-    <!-- Main -->
-    <main class="ml-64 flex flex-col h-screen">
+    <!-- Main Layout -->
+    <div id="app-layout" class="flex flex-col h-screen ml-14 transition-[margin-left] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]">
 
-        <!-- Top Bar -->
-        <header class="w-full h-16 sticky top-0 z-50 flex justify-between items-center px-6 bg-[#0e0e10]/60 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <!-- ══════════ Top Header Bar (Meshy-style) ══════════ -->
+        <header class="h-12 min-h-[48px] flex items-center justify-between px-5 bg-[#111113] border-b border-outline-variant/10 z-40">
             <div class="flex items-center gap-6">
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                    <input class="bg-surface-container-high border-none rounded-lg pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-[#cf96ff] transition-all placeholder:text-on-surface-variant/50" placeholder="Search projects..." type="text" />
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lime text-lg">view_in_ar</span>
+                    <span class="text-sm font-headline font-bold text-on-surface" id="user-name">Workspace</span>
+                    <span class="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
                 </div>
+                <nav class="flex items-center gap-5 text-xs font-label">
+                    <a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Community</a>
+                    <a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">My Assets</a>
+                    <a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">API</a>
+                    <a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Learn</a>
+                </nav>
             </div>
-            <div class="flex items-center gap-6 font-[Space_Grotesk] text-sm">
-                <a class="text-gray-400 hover:text-white transition-opacity" href="#">Docs</a>
-                <a class="text-gray-400 hover:text-white transition-opacity" href="#">Community</a>
-                <div class="flex items-center gap-4 ml-4 pl-4 border-l border-outline-variant/20">
-                    <button class="text-gray-400 hover:text-white transition-opacity"><span class="material-symbols-outlined">notifications</span></button>
-                    <button class="text-gray-400 hover:text-white transition-opacity"><span class="material-symbols-outlined">help_outline</span></button>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lime/10 border border-lime/20">
+                    <span class="material-symbols-outlined text-lime text-sm">token</span>
+                    <span class="text-xs font-bold text-lime font-label">440</span>
                 </div>
+                <button class="text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-lg">help_outline</span></button>
+                <button class="text-on-surface-variant hover:text-on-surface transition-colors relative">
+                    <span class="material-symbols-outlined text-lg">notifications</span>
+                </button>
+                <button id="logout-btn" class="text-on-surface-variant hover:text-on-surface transition-colors" title="Logout"><span class="material-symbols-outlined text-lg">logout</span></button>
             </div>
         </header>
 
-        <!-- Full-bleed viewport -->
-        <div class="flex-1 relative overflow-hidden">
-            <section id="viewport-container" class="absolute inset-0 viewport-gradient">
+        <!-- ══════════ Content Area ══════════ -->
+        <div class="flex flex-1 overflow-hidden">
 
-                <!-- CSS grid overlay -->
-                <div class="absolute inset-0 pointer-events-none opacity-10"
-                    style="background-image:linear-gradient(#48474a 1px,transparent 1px),linear-gradient(90deg,#48474a 1px,transparent 1px);background-size:40px 40px;"></div>
+        <!-- Left Panel -->
+        <aside id="left-panel" class="w-80 min-w-[320px] flex flex-col bg-[#131315] border-r border-outline-variant/10">
 
-                <!-- Three.js canvas -->
+            <!-- Mode Tabs -->
+            <div class="px-4 pt-4 pb-2">
+                <div class="flex gap-2">
+                    <button data-tab="text" class="mode-tab active flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-label font-medium border border-outline-variant/15 bg-surface-container-high transition-all duration-150 [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:[&_.material-symbols-outlined]:text-black">
+                        <span class="material-symbols-outlined text-base">edit_note</span>
+                        Text to 3D
+                    </button>
+                    <button data-tab="image" class="mode-tab flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-label font-medium text-on-surface-variant border border-outline-variant/15 bg-surface-container-high hover:text-on-surface transition-all duration-150 [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:[&_.material-symbols-outlined]:text-black">
+                        <span class="material-symbols-outlined text-base">image</span>
+                        Image to 3D
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══ Text to 3D Panel ═══ -->
+            <div id="tab-text" class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto panel-scroll px-5 pb-4 pt-2 space-y-5">
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 block">Prompt</label>
+                        <textarea id="prompt-input" rows="4"
+                            class="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 resize-none transition-all"
+                            placeholder="Describe the 3D model you want to forge..."></textarea>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 flex items-center gap-1 block">
+                            Name <span class="text-on-surface-variant/40 text-[10px]">(optional)</span>
+                        </label>
+                        <input id="gen-name" type="text"
+                            class="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 transition-all"
+                            placeholder="Give your generation a name" />
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-2 block">Quality</label>
+                        <div class="flex gap-1 bg-surface-container-high rounded-xl p-1 border border-outline-variant/15">
+                            <button data-quality="fast" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Fast</button>
+                            <button data-quality="balanced" class="quality-option active flex-1 py-2 text-xs rounded-lg text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Balanced</button>
+                            <button data-quality="quality" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Quality</button>
+                        </div>
+                        <div class="flex justify-between mt-1.5">
+                            <span class="text-[10px] text-on-surface-variant/50 font-label">32 steps</span>
+                            <span class="text-[10px] text-on-surface-variant/50 font-label">64 steps</span>
+                            <span class="text-[10px] text-on-surface-variant/50 font-label">128 steps</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-surface-container/80 border border-outline-variant/10">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-on-surface-variant">schedule</span>
+                            <span class="text-[11px] text-on-surface-variant font-label">~1 min</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-lime">token</span>
+                            <span class="text-[11px] text-lime font-bold font-label">20 credits</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-outline-variant/10">
+                    <button id="forge-btn"
+                        class="w-full shadow-[0_0_20px_rgba(184,241,71,0.25)] px-6 py-4 rounded-xl bg-gradient-to-r from-lime to-[#8bc926] text-black font-bold text-sm tracking-tight flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all">
+                        <span class="material-symbols-outlined text-lg">auto_awesome</span>
+                        Generate
+                    </button>
+                    <div class="mt-3 flex justify-center">
+                        <div class="px-3 py-1 rounded-full bg-surface-container/80 border border-outline-variant/10 flex items-center gap-2">
+                            <div id="status-dot" class="w-1.5 h-1.5 rounded-full bg-lime animate-pulse"></div>
+                            <span id="status-text" class="text-[10px] font-label text-on-surface-variant">Ready to generate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ Image to 3D Panel ═══ -->
+            <div id="tab-image" class="hidden flex-1 flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto panel-scroll px-5 pb-4 pt-2 space-y-5">
+                    <!-- Image Upload Zone -->
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 block">Reference Image</label>
+                        <div id="image-drop-zone" class="rounded-xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px] border-2 border-dashed border-[#48474a] transition-all duration-200 hover:border-lime hover:bg-lime/5 [&.dragover]:border-lime [&.dragover]:bg-lime/5">
+                            <div id="image-preview-container" class="hidden w-full">
+                                <img id="image-preview" class="rounded-lg max-h-40 mx-auto object-contain" />
+                                <button id="image-clear-btn" class="mt-2 text-[10px] text-error hover:text-error-dim mx-auto block">Remove image</button>
+                            </div>
+                            <div id="image-upload-prompt" class="flex flex-col items-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-on-surface-variant/40">add_photo_alternate</span>
+                                <span class="text-xs text-on-surface-variant/60 font-label">Click / Drag & Drop / Paste Image</span>
+                                <span class="text-[10px] text-on-surface-variant/30 font-label">Supported: .png, .jpg, .jpeg, .webp &middot; Max 20MB</span>
+                            </div>
+                            <input id="image-file-input" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 flex items-center gap-1 block">
+                            Name <span class="text-on-surface-variant/40 text-[10px]">(optional)</span>
+                        </label>
+                        <input id="img-gen-name" type="text"
+                            class="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 transition-all"
+                            placeholder="Give your generation a name" />
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-2 block">Quality</label>
+                        <div class="flex gap-1 bg-surface-container-high rounded-xl p-1 border border-outline-variant/15">
+                            <button data-quality="fast" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Fast</button>
+                            <button data-quality="balanced" class="quality-option active flex-1 py-2 text-xs rounded-lg text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Balanced</button>
+                            <button data-quality="quality" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Quality</button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-surface-container/80 border border-outline-variant/10">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-on-surface-variant">schedule</span>
+                            <span class="text-[11px] text-on-surface-variant font-label">~2 min</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-lime">token</span>
+                            <span class="text-[11px] text-lime font-bold font-label">40 credits</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-outline-variant/10">
+                    <button id="img-forge-btn"
+                        class="w-full shadow-[0_0_20px_rgba(184,241,71,0.25)] px-6 py-4 rounded-xl bg-gradient-to-r from-lime to-[#8bc926] text-black font-bold text-sm tracking-tight flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all">
+                        <span class="material-symbols-outlined text-lg">auto_awesome</span>
+                        Generate
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Viewport -->
+        <section class="flex-1 relative overflow-hidden">
+            <div id="viewport-container" class="absolute inset-0 viewport-gradient">
+                <div class="absolute inset-0 pointer-events-none opacity-[0.06]" style="background-image:linear-gradient(#48474a 1px,transparent 1px),linear-gradient(90deg,#48474a 1px,transparent 1px);background-size:40px 40px;"></div>
                 <canvas id="viewport-canvas" class="absolute inset-0 w-full h-full"></canvas>
-
-                <!-- Loading overlay -->
                 <div id="viewport-loader" class="hidden absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-20">
                     <div class="flex flex-col items-center gap-3">
-                        <svg class="animate-spin w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none">
+                        <svg class="animate-spin w-8 h-8 text-lime" viewBox="0 0 24 24" fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                         </svg>
-                        <span class="text-xs text-on-surface-variant font-label">Loading model...</span>
+                        <span class="text-xs text-on-surface-variant font-label">Forging model...</span>
                     </div>
                 </div>
-
-                <!-- Viewport controls (sits above prompt bar) -->
-                <div class="absolute bottom-36 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface-container-highest/80 backdrop-blur-md rounded-full border border-outline-variant/30 p-1.5 z-10">
-                    <button id="ctrl-camera" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Reset Camera">
+                <div id="model-stats" class="hidden absolute top-16 left-5 z-10">
+                    <div class="bg-surface-container-high/80 backdrop-blur-md rounded-xl border border-outline-variant/20 px-4 py-3 space-y-1.5">
+                        <div class="flex items-center justify-between gap-8">
+                            <span class="text-[10px] text-on-surface-variant font-label">Topology</span>
+                            <span class="text-[10px] text-on-surface font-bold font-label">Triangle</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-8">
+                            <span class="text-[10px] text-on-surface-variant font-label">Faces</span>
+                            <span id="stat-faces" class="text-[10px] text-on-surface font-bold font-label">-</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-8">
+                            <span class="text-[10px] text-on-surface-variant font-label">Vertices</span>
+                            <span id="stat-vertices" class="text-[10px] text-on-surface font-bold font-label">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface-container-highest/80 backdrop-blur-md rounded-full border border-outline-variant/20 p-1.5 z-10">
+                    <button id="ctrl-camera" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Reset Camera">
                         <span class="material-symbols-outlined text-lg">videocam</span>
                     </button>
-                    <button id="ctrl-grid" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Toggle Grid">
+                    <div class="w-px h-4 bg-outline-variant/20"></div>
+                    <button id="ctrl-grid" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Toggle Grid">
                         <span class="material-symbols-outlined text-lg">grid_on</span>
                     </button>
-                    <div class="w-px h-4 bg-outline-variant/30 mx-1"></div>
-                    <button id="ctrl-screenshot" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Screenshot">
+                    <button id="ctrl-wireframe" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Wireframe">
+                        <span class="material-symbols-outlined text-lg">deployed_code</span>
+                    </button>
+                    <button id="ctrl-material" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Material View">
+                        <span class="material-symbols-outlined text-lg">palette</span>
+                    </button>
+                    <div class="w-px h-4 bg-outline-variant/20"></div>
+                    <button id="ctrl-screenshot" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Screenshot">
                         <span class="material-symbols-outlined text-lg">screenshot_region</span>
                     </button>
-                    <button id="export-btn" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Export OBJ">
+                    <button id="export-btn" class="p-2.5 bg-lime/20 hover:bg-lime/30 rounded-full transition-colors text-lime" title="Export OBJ">
                         <span class="material-symbols-outlined text-lg">download</span>
                     </button>
-                    <button id="ctrl-fullscreen" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Fullscreen">
+                    <div class="w-px h-4 bg-outline-variant/20"></div>
+                    <button id="ctrl-fullscreen" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Fullscreen">
                         <span class="material-symbols-outlined text-lg">open_in_full</span>
                     </button>
                 </div>
-
-                <!-- XYZ Gizmo -->
-                <div class="absolute top-6 right-6 w-24 h-24 flex items-center justify-center z-10">
-                    <div class="relative w-full h-full">
-                        <div class="absolute top-1/2 left-0 w-full h-[1px] bg-red-500/40"></div>
-                        <div class="absolute top-0 left-1/2 w-[1px] h-full bg-green-500/40"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="w-4 h-4 rounded-full border-2 border-blue-500/40"></div>
-                        </div>
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] text-green-400 font-label">Y</div>
-                        <div class="absolute top-1/2 right-0 -translate-y-1/2 text-[10px] text-red-400 font-label">X</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Options panel -->
-            <div id="options-panel" class="hidden absolute bottom-32 left-1/2 -translate-x-1/2 w-80 bg-surface-container-high border border-outline-variant/20 rounded-2xl p-5 space-y-4 z-50 shadow-2xl">
-                <h3 class="text-xs font-bold tracking-widest text-on-surface/80 uppercase">Generation Options</h3>
-                <div class="space-y-2">
-                    <div class="flex justify-between text-[10px] text-on-surface-variant">
-                        <label for="opt-guidance">Guidance Scale</label>
-                        <span id="guidance-val" class="text-secondary font-bold">15</span>
-                    </div>
-                    <input id="opt-guidance" type="range" min="1" max="30" value="15" class="w-full accent-primary cursor-pointer" oninput="document.getElementById('guidance-val').textContent=this.value" />
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-[10px] text-on-surface-variant mb-1" for="opt-quality">Quality</label>
-                    <select id="opt-quality" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg text-xs py-2 px-3 text-on-surface focus:ring-1 focus:ring-primary/50 cursor-pointer">
-                        <option value="fast">Fast (32 steps)</option>
-                        <option value="balanced" selected>Balanced (64 steps)</option>
-                        <option value="quality">Quality (128 steps)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Prompt bar -->
-            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-4xl z-50">
-                <div class="glass-panel rounded-2xl border border-outline-variant/20 shadow-2xl p-2 flex items-center gap-3">
-                    <div class="flex-1 relative flex items-center">
-                        <div class="absolute left-4 w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-primary text-lg">auto_awesome</span>
-                        </div>
-                        <input id="prompt-input"
-                            class="w-full bg-transparent border-none focus:ring-0 pl-16 pr-4 py-4 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40"
-                            placeholder="Describe the 3D model you want to forge..." type="text" />
-                    </div>
-                    <div class="flex items-center gap-2 pr-2">
-                        <button id="options-btn" class="px-4 py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors">Options</button>
-                        <button id="forge-btn" class="neon-glow px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-bold text-sm tracking-tight flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
-                            Forge <span class="material-symbols-outlined text-[18px]">bolt</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-3 flex justify-center">
-                    <div class="px-4 py-1.5 rounded-full bg-surface-container-low/80 backdrop-blur-sm border border-outline-variant/10 flex items-center gap-2">
-                        <div id="status-dot" class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></div>
-                        <span id="status-text" class="text-[10px] font-label text-on-surface-variant">Ready to generate</span>
+                <div id="viewport-empty" class="absolute inset-0 flex items-center justify-center z-5 pointer-events-none">
+                    <div class="flex flex-col items-center gap-3 opacity-30">
+                        <span class="material-symbols-outlined text-5xl text-on-surface-variant">view_in_ar</span>
+                        <span class="text-sm text-on-surface-variant font-label">Enter a prompt to generate a 3D model</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </section>
+
+        <!-- Right Panel -->
+        <aside id="right-panel" class="w-80 min-w-[320px] flex flex-col bg-[#131315] border-l border-outline-variant/10">
+            <div class="px-5 pt-5 pb-3">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-bold font-headline tracking-tight text-on-surface">My Generations</h2>
+                    <button id="refresh-history-btn" class="p-1.5 hover:bg-surface-container-high rounded-lg transition-colors text-on-surface-variant hover:text-on-surface" title="Refresh">
+                        <span class="material-symbols-outlined text-lg">refresh</span>
+                    </button>
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-sm">search</span>
+                    <input id="history-search" type="text"
+                        class="w-full bg-surface-container-high border border-outline-variant/15 rounded-xl pl-9 pr-3 py-2 text-xs font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 transition-all"
+                        placeholder="Search my generations" />
+                </div>
+            </div>
+            <div id="history-list" class="flex-1 overflow-y-auto panel-scroll px-5 pb-5">
+                <div id="history-empty" class="flex flex-col items-center justify-center h-full opacity-40">
+                    <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">auto_awesome</span>
+                    <span class="text-xs text-on-surface-variant font-label text-center">No generations yet.<br/>Create your first model!</span>
+                </div>
+            </div>
+        </aside>
+    </div><!-- /content area -->
+    </div><!-- /app-layout -->
 
     <script type="module" src="workspace.js"></script>
 </body>
