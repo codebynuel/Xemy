@@ -126,7 +126,7 @@
 </head>
 
 <body
-    class="bg-background text-on-background min-h-screen selection:bg-primary/30 selection:text-primary overflow-hidden">
+    class="bg-background text-on-background min-h-screen selection:bg-primary/30 selection:text-primary">
     <!-- Auth Shell Suppression: Per instructions, TopAppBar and SideNav are hidden for Transactional pages -->
     <main class="flex min-h-screen w-full">
         <!-- Visual Column (Asymmetric Split) -->
@@ -190,17 +190,23 @@
                     </div>
                 </div>
                 <div class="space-y-3">
-                    <h2 class="font-headline text-4xl font-bold tracking-tight">Welcome Back</h2>
-                    <p class="text-on-surface-variant font-body">Enter your credentials to enter the forge.</p>
+                    <h2 id="form-title" class="font-headline text-4xl font-bold tracking-tight">Welcome Back</h2>
+                    <p id="form-subtitle" class="text-on-surface-variant font-body">Enter your credentials to enter the forge.</p>
                 </div>
                 <!-- Form -->
-                <form class="space-y-6">
+                <form id="auth-form" class="space-y-6">
                     <div class="space-y-4">
+                        <!-- Name Field (Hidden for Login) -->
+                        <div id="name-field" class="group hidden">
+                            <label class="block font-label text-xs uppercase tracking-widest text-outline mb-2 group-focus-within:text-secondary transition-colors">Full Name</label>
+                            <input id="name-input" class="w-full bg-surface-container-highest border-none rounded-t-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-0 transition-all border-b border-transparent focus:border-secondary" placeholder="Alex Chen" type="text" />
+                        </div>
                         <div class="group">
                             <label
                                 class="block font-label text-xs uppercase tracking-widest text-outline mb-2 group-focus-within:text-secondary transition-colors">Email
                                 Address</label>
                             <input
+                                id="email-input"
                                 class="w-full bg-surface-container-highest border-none rounded-t-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-0 transition-all border-b border-transparent focus:border-secondary"
                                 placeholder="name@domain.com" type="email" />
                         </div>
@@ -208,12 +214,15 @@
                             <div class="flex justify-between items-center mb-2">
                                 <label
                                     class="block font-label text-xs uppercase tracking-widest text-outline group-focus-within:text-secondary transition-colors">Password</label>
-                                <a class="text-xs font-label text-primary hover:text-primary-dim transition-colors"
+                                <a id="forgot-password" class="text-xs font-label text-primary hover:text-primary-dim transition-colors"
                                     href="#">Forgot?</a>
                             </div>
-                            <input
-                                class="w-full bg-surface-container-highest border-none rounded-t-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-0 transition-all border-b border-transparent focus:border-secondary"
-                                placeholder="••••••••" type="password" />
+                            <div class="relative">
+                                <input id="password-input" class="w-full bg-surface-container-highest border-none rounded-t-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-0 transition-all border-b border-transparent focus:border-secondary" placeholder="••••••••" type="password" />
+                                <button type="button" id="toggle-password" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-white transition-colors">
+                                    <span class="material-symbols-outlined text-sm">visibility</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -223,7 +232,9 @@
                         <label class="text-sm text-on-surface-variant font-body select-none" for="remember">Remember for
                             30 days</label>
                     </div>
+                    <div id="auth-message" class="hidden"></div>
                     <button
+                        id="submit-btn"
                         class="w-full h-14 rounded-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-headline font-bold text-lg hover:shadow-[0_0_25px_rgba(207,150,255,0.3)] transition-all active:scale-[0.98]"
                         type="submit">
                         Sign In
@@ -268,9 +279,8 @@
                 </div>
                 <div class="pt-8 text-center">
                     <p class="text-on-surface-variant text-sm font-body">
-                        New to Dimensional Synth?
-                        <a class="text-primary font-bold ml-1 hover:text-primary-dim transition-colors" href="#">Start
-                            Forging</a>
+                        <span id="toggle-text">New to Dimensional Synth?</span>
+                        <a id="toggle-view-btn" class="text-primary font-bold ml-1 hover:text-primary-dim transition-colors cursor-pointer" href="#">Start Forging</a>
                     </p>
                 </div>
             </div>
@@ -283,6 +293,7 @@
     <div
         class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none">
     </div>
+    <script src="auth.js"></script>
 </body>
 
 </html>
