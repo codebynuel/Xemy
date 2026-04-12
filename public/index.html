@@ -88,9 +88,104 @@
             },
         }
     </script>
+    <script src="script.js"></script>
     <style>
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Navbar: wrapper is pointer-events-none so full width doesn't block page clicks */
+        #navbar-wrapper {
+            pointer-events: none;
+        }
+        /* Nav transitions its own width/radius/padding — no position change, no item hiding */
+        #navbar {
+            pointer-events: auto;
+            width: 100%;
+            max-width: 100%;
+            background: transparent;
+            border: 1px solid transparent;
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+            border-radius: 0;
+            padding: 1rem 2rem;
+            margin-top: 0;
+            box-shadow: none;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: width 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        max-width 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        background 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        border-color 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        border-radius 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        padding 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        margin-top 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+                        box-shadow 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        #navbar.nav-scrolled {
+            width: 95%;
+            max-width: 860px;
+            background: rgba(22, 21, 25, 0.92);
+            border-color: rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            padding: 0.6rem 1.75rem;
+            margin-top: 0.75rem;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55), 0 0 24px rgba(207, 150, 255, 0.15);
+        }
+
+        /* Mobile menu */
+        #mobile-menu {
+            display: none;
+            position: fixed;
+            top: 4.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(360px, 92vw);
+            background: rgba(26, 25, 28, 0.97);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            z-index: 49;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            transform: translateX(-50%) translateY(-8px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+        #mobile-menu.open {
+            display: block;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hero entrance animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(28px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .hero-animate {
+            opacity: 0;
+            animation: fadeInUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .hero-animate-right {
+            opacity: 0;
+            animation: fadeInRight 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Scroll reveal */
+        [data-animate] {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        [data-animate].visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .glass-card {
@@ -122,31 +217,41 @@
 </head>
 
 <body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
-    <!-- TopNavBar -->
-    <nav
-        class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-8 py-4 max-w-full mx-auto">
-        <div
-            class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 font-headline tracking-tight">
-            Dimensional Synth
-        </div>
-        <div class="hidden md:flex items-center gap-8">
-            <a class="text-purple-400 border-b-2 border-purple-400 pb-1 font-headline text-sm uppercase tracking-wider"
-                href="#">Models</a>
-            <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider"
-                href="#">Engine</a>
-            <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider"
-                href="#">Showcase</a>
-            <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider"
-                href="#">Pricing</a>
-        </div>
-        <div class="flex items-center gap-4">
-            <button class="text-slate-300 hover:text-white transition-all duration-300 text-sm font-medium">Sign
-                In</button>
-            <button
-                class="bg-primary text-on-primary-fixed px-6 py-2 rounded-full font-semibold hover:opacity-80 transition-all duration-300 active:scale-95">Get
-                Started</button>
-        </div>
-    </nav>
+    <!-- TopNavBar: wrapper is pointer-events-none so full-width invisible area doesn't block clicks -->
+    <div id="navbar-wrapper" class="fixed top-0 w-full z-50 flex justify-center">
+        <nav id="navbar" class="flex justify-between items-center">
+            <div class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 font-headline tracking-tight flex-shrink-0">
+                Xemy
+            </div>
+            <div class="hidden md:flex items-center gap-8">
+                <a class="text-purple-400 border-b-2 border-purple-400 pb-1 font-headline text-sm uppercase tracking-wider" href="#">Models</a>
+                <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider" href="#">Engine</a>
+                <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider" href="#">Showcase</a>
+                <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider" href="#">Pricing</a>
+            </div>
+            <div id="nav-actions" class="flex items-center gap-3 flex-shrink-0">
+                <button id="sign-in-btn" class="hidden md:inline text-slate-300 hover:text-white transition-all duration-300 text-sm font-medium">Sign In</button>
+                <button id="get-started-btn" class="bg-primary text-on-primary-fixed px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Get Started</button>
+                <!-- Hamburger (mobile only) -->
+                <button id="mobile-menu-btn" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg hover:bg-white/5 transition-colors" aria-label="Toggle menu">
+                    <span class="block w-5 h-0.5 bg-slate-300 transition-all duration-300 origin-center" id="hb-top"></span>
+                    <span class="block w-5 h-0.5 bg-slate-300 transition-all duration-300" id="hb-mid"></span>
+                    <span class="block w-5 h-0.5 bg-slate-300 transition-all duration-300 origin-center" id="hb-bot"></span>
+                </button>
+            </div>
+        </nav>
+    </div>
+    <!-- Mobile Menu Dropdown -->
+    <div id="mobile-menu" role="dialog" aria-label="Navigation menu">
+        <nav class="flex flex-col gap-1">
+            <a href="#" class="mobile-nav-link px-4 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 font-headline text-sm uppercase tracking-wider transition-colors">Models</a>
+            <a href="#" class="mobile-nav-link px-4 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 font-headline text-sm uppercase tracking-wider transition-colors">Engine</a>
+            <a href="#" class="mobile-nav-link px-4 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 font-headline text-sm uppercase tracking-wider transition-colors">Showcase</a>
+            <a href="#" class="mobile-nav-link px-4 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 font-headline text-sm uppercase tracking-wider transition-colors">Pricing</a>
+            <div class="border-t border-white/10 my-2"></div>
+            <button id="mobile-sign-in-btn" onclick="window.location.href='/auth/index.html'" class="w-full px-4 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 font-label text-sm text-left transition-colors">Sign In</button>
+        </nav>
+    </div>
     <main>
         <!-- Hero Section -->
         <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
@@ -159,21 +264,20 @@
             </div>
             <div class="container mx-auto px-8 relative z-10 grid md:grid-cols-2 gap-12 items-center">
                 <div class="space-y-8">
-                    <div
-                        class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant bg-surface-container-high/50 text-secondary text-xs font-label tracking-widest uppercase">
-                        The Ethereal Forge is Live
-                    </div>
+                    
                     <h1
-                        class="text-6xl md:text-8xl font-headline font-bold leading-[0.9] tracking-tighter text-on-background">
+                        class="hero-animate text-5xl md:text-8xl font-headline font-bold leading-[0.9] tracking-tighter text-on-background"
+                        style="animation-delay: 100ms;">
                         From <span class="text-gradient-primary">Imagination</span> to 3D Reality
                     </h1>
-                    <p class="text-xl text-on-surface-variant max-w-md leading-relaxed">
-                        Sculpt high-fidelity assets in the void. Dimensional Synth leverages neural synthesis to
+                    <p class="hero-animate text-xl text-on-surface-variant max-w-md leading-relaxed"
+                        style="animation-delay: 200ms;">
+                        Sculpt high-fidelity assets in the void. Xemy leverages neural synthesis to
                         transform words into high-poly geometric masterpieces.
                     </p>
-                    <div class="flex items-center gap-6">
+                    <div class="hero-animate flex flex-wrap items-center gap-4" style="animation-delay: 300ms;">
                         <button
-                            class="btn-primary-gradient text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold text-lg transition-all">
+                            class="btn-primary-gradient text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold text-lg transition-all hover:-translate-y-0.5 duration-200">
                             Start Forging
                         </button>
                         <button
@@ -183,7 +287,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="relative group">
+                <div class="hero-animate-right relative group" style="animation-delay: 350ms;">
                     <div
                         class="absolute -inset-4 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all">
                     </div>
@@ -202,15 +306,15 @@
         <!-- Features Bento Grid -->
         <section class="py-24 bg-surface-container-low">
             <div class="container mx-auto px-8">
-                <div class="mb-16 text-center max-w-2xl mx-auto">
+                <div class="mb-16 text-center max-w-2xl mx-auto" data-animate>
                     <h2 class="text-4xl md:text-5xl font-headline font-bold mb-6">Master the Synthesis</h2>
                     <p class="text-on-surface-variant text-lg">Harness the most advanced generative engine ever built
                         for technical 3D workflows.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                     <!-- Text-to-3D -->
-                    <div
-                        class="md:col-span-7 glass-card rounded-[2rem] p-10 border border-white/5 relative overflow-hidden group">
+                    <div data-animate
+                        class="md:col-span-7 glass-card rounded-[2rem] p-10 border border-white/5 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                         <div class="relative z-10 h-full flex flex-col justify-between">
                             <div>
                                 <span class="material-symbols-outlined text-primary text-4xl mb-6"
@@ -237,8 +341,8 @@
                         </div>
                     </div>
                     <!-- Real-time Rendering -->
-                    <div
-                        class="md:col-span-5 bg-surface-container-high rounded-[2rem] p-10 border border-outline-variant/10 flex flex-col justify-between group">
+                    <div data-animate
+                        class="md:col-span-5 bg-surface-container-high rounded-[2rem] p-10 border border-outline-variant/10 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300">
                         <div>
                             <span class="material-symbols-outlined text-secondary text-4xl mb-6"
                                 data-icon="speed">speed</span>
@@ -259,8 +363,8 @@
                         </div>
                     </div>
                     <!-- Image-to-3D -->
-                    <div
-                        class="md:col-span-12 glass-card rounded-[2rem] p-10 border border-white/5 relative overflow-hidden group">
+                    <div data-animate
+                        class="md:col-span-12 glass-card rounded-[2rem] p-10 border border-white/5 relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300">
                         <div class="grid md:grid-cols-2 gap-12 items-center">
                             <div>
                                 <span class="material-symbols-outlined text-tertiary text-4xl mb-6"
@@ -297,10 +401,10 @@
         <section class="py-24 overflow-hidden">
             <div class="container mx-auto px-8">
                 <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-                    <div class="max-w-xl">
+                    <div class="max-w-xl" data-animate>
                         <h2 class="text-5xl font-headline font-bold mb-4">Forged in the Cloud</h2>
                         <p class="text-on-surface-variant text-lg">A selection of recent artifacts synthesized by the
-                            Dimensional community.</p>
+                            Xemy community.</p>
                     </div>
                     <div class="flex gap-2">
                         <button
@@ -314,8 +418,8 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="space-y-6">
-                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                    <div class="space-y-6" data-animate>
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group hover:scale-[1.02] transition-transform duration-300">
                             <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                                 data-alt="High detail 3D model of a complex mechanical engine part with copper and chrome materials"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT_jzC9q3xCxjZ9IPA92ebdULnyO0Hcqa5jrKA9IvvUiD4qPEffMsOye3JBG9vbnJxE03XxCdHv0fygWjYcABqLH2EpJ_bAscCLRI-5lmlg8ahum-F5oGO4iYDekkbIVjeeZrOS-3pHyLS9ISGz8uYHzQWCopWzKaTG5jVJOULnGwflbybTVhfTp3x_Jq7r8KbBuuzBnT4UmiVljeQ9e2PT_0L1L_kjSAUJ4i3WB3N372Z7VRq9BH6ZYDUj51uQzdgTGeQCbXxJ1k" />
@@ -332,8 +436,8 @@
                                 TODAY</p>
                         </div>
                     </div>
-                    <div class="space-y-6 pt-12">
-                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                    <div class="space-y-6 pt-12" data-animate>
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group hover:scale-[1.02] transition-transform duration-300">
                             <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                                 data-alt="Digital art of an alien planet landscape with bioluminescent flora and floating mountain structures"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMxO4gCkWeYin59jtl3inqyviba6HyDp8Qy6ql_5LWTmoSP2RRpWIsTaxJTDQ8nDBzysSLtmfMrqw3frW1FmQshM5VCJZfRl8q5yYmtc7kAps8L9RlxquGuiOOg3I3Gzo_fDKRHtCrX92Xz91Ga51jC87wgv-yU_CxWnXj_lPQw_IDPvTXG-1NF3Dj0UYWf9QSswxP1vsGvDshis-cVny5Dbyf6MPiC4PHw5-BueWvHvzr34b6LyJVg9-rlyQVyH71umXKPO8qWiE" />
@@ -354,8 +458,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="space-y-6">
-                        <div class="aspect-square rounded-[2rem] overflow-hidden relative group">
+                    <div class="space-y-6" data-animate>
+                        <div class="aspect-square rounded-[2rem] overflow-hidden relative group hover:scale-[1.02] transition-transform duration-300">
                             <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                                 data-alt="Minimalist abstract 3D ribbons of white and gold silk floating in a clean dark space"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcg0FiVYr_nwvGhnesN0B4YBSGR4qTSvOk5NaQwgqhVDtdhlYSs-6UTlF_379gTgH_Np132teAcMiO8kfzzO2TBaJpQTEd_UJjYpHLRiJsD-o3vGAX1qSRHXgkzynQRHaFHi5Cj7avrGjt88hEf6q-fns94QpReRjQFym4d7HhiPtBX03lNsgxbPtplXgQw2OR_BZ4fzJEIkpuXiC53lYMrk5Y8fqB93yyPUxrQ-MOf1BErHYayzhiT8w3AbfFX1J9Ofm-ThbKV30" />
@@ -376,8 +480,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="space-y-6 pt-12">
-                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                    <div class="space-y-6 pt-12" data-animate>
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group hover:scale-[1.02] transition-transform duration-300">
                             <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                                 data-alt="Close up of a stylized 3D model of a crystal formation with internal glowing fractures"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcnalY483x99ln_Pt19zkXtzBFNIG8GCetQ9xVC_QvNRX80jw51IQM5jKzHpU1xXP6Nolrq332pGvXFLEyPcJ0t6ppSxkunIWkCAIctN_0QRG5scrhB229wbxqL1J37cO1-9QmJCv92OG-GDPBEA7TParhTTuHINKv1SZSEvGpbDm33S5YSpNc_y45TXXcXXHqwOl6qImYHu0aJUTSdTsfgChAPTaeWxN4ULC0gaBJpdixWT2iaiXMiaI10X00Esf7H6Ml1UeiDbY" />
@@ -403,17 +507,17 @@
                 <div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent"></div>
             </div>
             <div class="container mx-auto px-8 relative z-10 text-center">
-                <div class="max-w-4xl mx-auto glass-card rounded-[3rem] p-16 border border-white/10 editorial-shadow">
+                <div class="max-w-4xl mx-auto glass-card rounded-[3rem] p-16 border border-white/10 editorial-shadow" data-animate>
                     <h2 class="text-5xl md:text-7xl font-headline font-bold mb-8">Ready to Forge the Infinite?</h2>
                     <p class="text-xl text-on-surface-variant mb-12 max-w-2xl mx-auto">Join the new era of 3D creation.
                         No technical barriers. Just pure creative synthesis.</p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <button
-                            class="btn-primary-gradient text-on-primary-fixed px-12 py-5 rounded-full font-headline font-bold text-xl transition-all">
+                            class="btn-primary-gradient text-on-primary-fixed px-12 py-5 rounded-full font-headline font-bold text-xl transition-all hover:-translate-y-0.5 duration-200">
                             Get Started
                         </button>
                         <button
-                            class="px-12 py-5 rounded-full border border-outline-variant font-headline font-bold text-xl hover:bg-white/5 transition-all">
+                            class="px-12 py-5 rounded-full border border-outline-variant font-headline font-bold text-xl hover:bg-white/5 hover:-translate-y-0.5 transition-all duration-200">
                             Contact Sales
                         </button>
                     </div>
@@ -426,7 +530,7 @@
         class="bg-[#0e0e10] w-full py-12 px-8 border-t border-white/5 tonal-shift-bg-surface-container-low flat no shadows">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
             <div class="col-span-2 md:col-span-1">
-                <div class="text-lg font-bold text-white font-headline mb-6">Dimensional Synth</div>
+                <div class="text-lg font-bold text-white font-headline mb-6">Xemy</div>
                 <p class="font-['Inter'] text-sm text-slate-400 mb-6 max-w-xs">The Ethereal Forge. Transforming human
                     intent into three-dimensional reality through neural synthesis.</p>
                 <div class="flex gap-4">
@@ -483,7 +587,7 @@
         </div>
         <div
             class="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="font-['Inter'] text-sm text-slate-400">© 2024 Dimensional Synth. All rights reserved. Built for
+            <p class="font-['Inter'] text-sm text-slate-400">© 2024 Xemy. All rights reserved. Built for
                 the Ethereal Forge.</p>
             <div class="flex gap-6">
                 <span class="text-[10px] font-label text-outline uppercase tracking-[0.2em]">Version 2.0.4-Delta</span>

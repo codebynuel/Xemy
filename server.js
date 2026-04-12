@@ -9,12 +9,15 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const cookieParser = require('cookie-parser');
+
 const app = express();
 // Upgrade Express to an HTTP server to support WebSockets
 const server = http.createServer(app); 
 const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -48,7 +51,8 @@ app.post('/api/auth/register', async (req, res) => {
         await newUser.save();
 
         const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'xemy_secret', { expiresIn: '7d' });
-        res.status(201).json({ token, message: 'Account created successfully' });
+        res.cookie('authToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.status(201).json({ message: 'Account created successfully', authenticated: true });
     } catch (error) {
         console.error('Registration Error:', error);
         res.status(500).json({ error: 'Failed to create account' });
@@ -65,11 +69,32 @@ app.post('/api/auth/login', async (req, res) => {
         if (!isMatch) return res.status(400).json({ error: 'Invalid email or password' });
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'xemy_secret', { expiresIn: '7d' });
-        res.status(200).json({ token, message: 'Login successful' });
+        res.cookie('authToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.status(200).json({ message: 'Login successful', authenticated: true });
     } catch (error) {
         console.error('Login Error:', error);
         res.status(500).json({ error: 'Login failed' });
     }
+});
+
+app.get('/api/auth/verify', async (req, res) => {
+    try {
+        const token = req.cookies.authToken;
+        if (!token) return res.status(401).json({ authenticated: false });
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'xemy_secret');
+        const user = await User.findById(decoded.userId);
+        if (!user) return res.status(401).json({ authenticated: false });
+
+        res.status(200).json({ authenticated: true, user: { id: user._id, name: user.name, email: user.email } });
+    } catch (error) {
+        res.status(401).json({ authenticated: false });
+    }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('authToken');
+    res.status(200).json({ message: 'Logout successful' });
 });
 
 // ---------------------------------------------------------

@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Dimensional Synth | Access the Ethereal Forge</title>
+    <title>Xemy | Access the Ethereal Forge</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Manrope:wght@400;500;600&amp;display=swap"
@@ -122,6 +122,55 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+
+        /* Form panel entrance */
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(24px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .form-panel {
+            animation: slideInRight 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        /* Shake on auth error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15%       { transform: translateX(-6px); }
+            30%       { transform: translateX(6px); }
+            45%       { transform: translateX(-4px); }
+            60%       { transform: translateX(4px); }
+            75%       { transform: translateX(-2px); }
+        }
+        .shake { animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+        /* Input accent focus */
+        input:focus {
+            outline: none;
+            border-bottom: 2px solid #cf96ff !important;
+            background-color: rgba(38, 37, 40, 0.9);
+        }
+        input:focus + button { color: #cf96ff; }
+
+        /* Label highlight on focus-within */
+        .group:focus-within label {
+            color: #cf96ff;
+        }
+
+        /* Submit button hover lift */
+        #submit-btn {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        }
+        #submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 28px rgba(207, 150, 255, 0.35);
+        }
+        #submit-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        #submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
@@ -147,7 +196,7 @@
                         <span class="material-symbols-outlined text-on-primary-fixed font-bold">layers</span>
                     </div>
                     <span
-                        class="font-headline text-2xl font-bold tracking-tight bg-gradient-to-r from-on-background to-on-background/60 bg-clip-text text-transparent">Dimensional
+                        class="font-headline text-2xl font-bold tracking-tight bg-gradient-to-r from-on-background to-on-background/60 bg-clip-text text-transparent">Xemy
                         Synth</span>
                 </div>
                 <div class="max-w-xl">
@@ -178,7 +227,7 @@
             </div>
         </section>
         <!-- Form Column -->
-        <section class="w-full lg:w-2/5 flex flex-col items-center justify-center p-8 lg:p-20 bg-surface">
+        <section class="w-full lg:w-2/5 flex flex-col items-center justify-center p-8 lg:p-20 bg-surface form-panel">
             <div class="w-full max-w-md space-y-10">
                 <!-- Mobile Logo -->
                 <div class="lg:hidden flex justify-center mb-12">
@@ -186,7 +235,7 @@
                         <div class="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                             <span class="material-symbols-outlined text-on-primary-fixed text-sm">layers</span>
                         </div>
-                        <span class="font-headline text-xl font-bold">Dimensional Synth</span>
+                        <span class="font-headline text-xl font-bold">Xemy</span>
                     </div>
                 </div>
                 <div class="space-y-3">
@@ -279,7 +328,7 @@
                 </div>
                 <div class="pt-8 text-center">
                     <p class="text-on-surface-variant text-sm font-body">
-                        <span id="toggle-text">New to Dimensional Synth?</span>
+                        <span id="toggle-text">New to Xemy?</span>
                         <a id="toggle-view-btn" class="text-primary font-bold ml-1 hover:text-primary-dim transition-colors cursor-pointer" href="#">Start Forging</a>
                     </p>
                 </div>
