@@ -1,74 +1,77 @@
 import runpod
 import torch
 import base64
-import io
-from shap_e.diffusion.sample import sample_latents
-from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
-from shap_e.models.download import load_model, load_config
-from shap_e.util.notebooks import decode_latent_mesh
+import requests
+from io import BytesIO
+from PIL import Image
 
-# Use GPU if available
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# Import TRELLIS specific libraries
+from trellis.pipelines import TrellisImageTo3DPipeline
+from trellis.utils import postprocessing_utils
 
 # ---------------------------------------------------------
 # Load models ONCE when the container starts up.
-# This prevents 3-minute cold starts on every single API call!
 # ---------------------------------------------------------
-print("Loading Shap-E models into VRAM...")
-xm = load_model('transmitter', device=device)
-model = load_model('text300M', device=device)
-diffusion = diffusion_from_config(load_config('diffusion'))
-print("Models loaded successfully!")
+print("Loading Microsoft TRELLIS into VRAM...")
+# This automatically grabs the weights we cached in the Dockerfile
+pipeline = TrellisImageTo3DPipeline.from_pretrained("JeffreyXiang/TRELLIS-image-large")
+pipeline.cuda() # Move the model to the GPU
+print("TRELLIS loaded and ready!")
 
 def generate_3d(job):
     """
-    This function runs every time you ping your RunPod endpoint.
+    This runs when Express hits the RunPod API.
     """
     job_input = job['input']
-    prompt = job_input.get('prompt', 'a standard cube') # Default prompt if none provided
     
-    # Magic numbers for Shap-E quality vs speed
-    batch_size = 1
-    guidance_scale = 15.0
+    # We now expect an image URL instead of a text prompt
+    image_url = job_input.get('image_url')
     
-    print(f"Generating 3D model for: {prompt}")
+    if not image_url:
+        return {"status": "error", "message": "No image_url provided."}
+    
+    print(f"Downloading reference image from: {image_url}")
     
     try:
-        # 1. Run the AI generation
-        latents = sample_latents(
-            batch_size=batch_size,
-            model=model,
-            diffusion=diffusion,
-            guidance_scale=guidance_scale,
-            model_kwargs=dict(texts=[prompt] * batch_size),
-            progress=False,
-            clip_denoised=True,
-            use_fp16=True,
-            use_karras=True,
-            karras_steps=64, # Lower to 32 for faster, lower-quality tests
-            sigma_min=1e-3,
-            sigma_max=160,
-            s_churn=0,
+        # 1. Fetch the 2D image from the URL
+        response = requests.get(image_url)
+        response.raise_for_status()
+        image = Image.open(BytesIO(response.content)).convert("RGB")
+        
+        print("Image downloaded. Running 3D synthesis...")
+        
+        # 2. Run the TRELLIS AI generation
+        # Seed 1 ensures consistent results. You can randomize this if you want variations.
+        outputs = pipeline.run(image, seed=1)
+        
+        # 3. Post-process the output into a textured 3D Mesh
+        # simplify=0.95 reduces the poly count slightly so it loads faster in the browser
+        # texture_size=1024 gives us Meshy-level texture quality
+        glb_mesh = postprocessing_utils.to_glb(
+            outputs['gaussian'][0],
+            outputs['mesh'][0],
+            simplify=0.95,
+            texture_size=1024 
         )
         
-        # 2. Decode the AI output into an actual 3D mesh
-        mesh = decode_latent_mesh(xm, latents[0]).tri_mesh()
+        # 4. Save to a temporary file
+        temp_path = "/tmp/output.glb"
+        glb_mesh.export(temp_path)
         
-        # 3. Save to an in-memory buffer as an OBJ file
-        buffer = io.StringIO()
-        mesh.write_obj(buffer)
+        # 5. Encode the GLB to base64 to send back to Express via Webhook
+        with open(temp_path, "rb") as f:
+            obj_base64 = base64.b64encode(f.read()).decode('utf-8')
         
-        # 4. Encode the OBJ to base64 so we can send it back via JSON
-        obj_base64 = base64.b64encode(buffer.getvalue().encode('utf-8')).decode('utf-8')
+        print("Generation complete! Sending to Webhook...")
         
         return {
             "status": "success", 
-            "prompt": prompt,
             "model_data": obj_base64,
-            "format": "obj"
+            "format": "glb"
         }
         
     except Exception as e:
+        print(f"Error during generation: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 # Start listening for requests
