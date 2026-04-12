@@ -26,6 +26,9 @@ const TEMP_DIR = path.join(__dirname, 'temp_models');
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
 app.use('/models', express.static(TEMP_DIR));
 
+const PUBLIC_URL = process.env.WEBHOOK_PUBLIC_URL;
+if (!PUBLIC_URL) console.warn('⚠️  WEBHOOK_PUBLIC_URL is not set — webhooks and model URLs will be broken!');
+
 // ---------------------------------------------------------
 // DATABASE & AUTHENTICATION
 // ---------------------------------------------------------
@@ -114,19 +117,20 @@ io.on('connection', (socket) => {
 });
 
 // ---------------------------------------------------------
-// ROUTE 1: Trigger the GPU (and pass the Webhook URL)
+// ROUTE 1: Trigger the GPU and poll for completion
 // ---------------------------------------------------------
 app.post('/api/generate', async (req, res) => {
     const { prompt, sessionId } = req.body;
     if (!prompt || !sessionId) return res.status(400).json({ error: "Missing data" });
 
+    // Sanitize sessionId up-front to prevent path traversal
+    const safeSessionId = path.basename(sessionId);
+    if (!safeSessionId || safeSessionId !== sessionId) {
+        return res.status(400).json({ error: 'Invalid session ID' });
+    }
+
     const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY;
     const ENDPOINT_ID = process.env.ENDPOINT_ID;
-    
-    // This is the magic! We tell RunPod to hit this exact URL when it finishes.
-    // We include the sessionId in the URL so we know WHO to send the model to later.
-    const PUBLIC_URL = process.env.WEBHOOK_PUBLIC_URL;
-    const webhookUrl = `${PUBLIC_URL}/api/webhook/${sessionId}`;
 
     try {
         const runRes = await fetch(`https://api.runpod.ai/v2/${ENDPOINT_ID}/run`, {
@@ -135,52 +139,60 @@ app.post('/api/generate', async (req, res) => {
                 'Authorization': `Bearer ${RUNPOD_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ 
-                input: { prompt },
-                webhook: webhookUrl // Tell RunPod where to send the result!
-            })
+            body: JSON.stringify({ input: { prompt } })
         });
-        
+
         const runData = await runRes.json();
-        res.status(200).json({ jobId: runData.id, status: "IN_QUEUE" });
+        const jobId = runData.id;
+        if (!jobId) return res.status(500).json({ error: 'Failed to queue job on RunPod' });
+
+        res.status(200).json({ jobId, status: 'IN_QUEUE' });
+
+        // Poll RunPod every 5 seconds until the job finishes
+        const poll = setInterval(async () => {
+            try {
+                const statusRes = await fetch(`https://api.runpod.ai/v2/${ENDPOINT_ID}/status/${jobId}`, {
+                    headers: { 'Authorization': `Bearer ${RUNPOD_API_KEY}` }
+                });
+                const statusData = await statusRes.json();
+                const status = statusData.status;
+
+                console.log(`   Polling ${jobId.slice(0, 8)} — ${status}`);
+
+                // Emit live status so the frontend can show queue / in-progress feedback
+                io.to(safeSessionId).emit('generation_status', { jobId, status });
+
+                if (status === 'COMPLETED') {
+                    clearInterval(poll);
+
+                    const objB64 = statusData.output?.model_data;
+                    if (!objB64) {
+                        io.to(safeSessionId).emit('generation_failed', { error: 'Generation completed but model data was empty' });
+                        return;
+                    }
+
+                    const userDir = path.join(TEMP_DIR, safeSessionId);
+                    if (!fs.existsSync(userDir)) fs.mkdirSync(userDir);
+
+                    const fileName = `${jobId}.obj`;
+                    const filePath = path.join(userDir, fileName);
+                    fs.writeFileSync(filePath, Buffer.from(objB64, 'base64'));
+
+                    const modelUrl = `${PUBLIC_URL}/models/${safeSessionId}/${fileName}`;
+                    io.to(safeSessionId).emit('generation_complete', { modelUrl });
+
+                } else if (['FAILED', 'CANCELLED', 'TIMED_OUT'].includes(status)) {
+                    clearInterval(poll);
+                    io.to(safeSessionId).emit('generation_failed', { error: `Generation ${status.toLowerCase()}` });
+                }
+            } catch (pollError) {
+                console.error(`Polling error for job ${jobId}:`, pollError);
+            }
+        }, 5000);
 
     } catch (error) {
         res.status(500).json({ error: "Failed to start GPU generation" });
     }
-});
-
-// ---------------------------------------------------------
-// ROUTE 2: THE WEBHOOK (RunPod POSTs to this when done!)
-// ---------------------------------------------------------
-app.post('/api/webhook/:sessionId', (req, res) => {
-    const { sessionId } = req.params;
-    const runpodData = req.body;
-
-    console.log(`🔔 Webhook received for session: ${sessionId}. Status: ${runpodData.status}`);
-
-    if (runpodData.status === 'COMPLETED') {
-        const userDir = path.join(TEMP_DIR, sessionId);
-        if (!fs.existsSync(userDir)) fs.mkdirSync(userDir);
-
-        const fileName = `${runpodData.id}.obj`;
-        const filePath = path.join(userDir, fileName);
-
-        // Save the base64 data to a file
-        const objB64 = runpodData.output.model_data;
-        const objBuffer = Buffer.from(objB64, 'base64');
-        fs.writeFileSync(filePath, objBuffer);
-
-        const modelUrl = `http://localhost:3000/models/${sessionId}/${fileName}`;
-        
-        // BOOM! Push the URL to the exact user over WebSockets
-        io.to(sessionId).emit('generation_complete', { modelUrl });
-    } 
-    else if (runpodData.status === 'FAILED') {
-        io.to(sessionId).emit('generation_failed', { error: "GPU Generation Failed" });
-    }
-
-    // You MUST return 200 OK so RunPod knows you received the webhook
-    res.status(200).send('Webhook Received');
 });
 
 app.use(express.static(path.join(__dirname, 'public')));

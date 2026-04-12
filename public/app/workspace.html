@@ -1,416 +1,221 @@
-<!DOCTYPE html>
-
+﻿<!DOCTYPE html>
 <html class="dark" lang="en">
-
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Manrope:wght@400;500;600&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
-                        "secondary-fixed-dim": "#00deec",
-                        "secondary": "#00eefc",
-                        "on-secondary": "#005359",
-                        "on-primary-fixed": "#000000",
-                        "background": "#0e0e10",
-                        "secondary-fixed": "#00eefc",
-                        "inverse-on-surface": "#565557",
-                        "tertiary-container": "#ff05e5",
-                        "tertiary-fixed": "#ff85e4",
-                        "inverse-surface": "#fcf8fb",
-                        "surface": "#0e0e10",
-                        "surface-bright": "#2c2c2f",
-                        "surface-container": "#19191c",
-                        "surface-variant": "#262528",
-                        "on-error": "#490013",
-                        "surface-tint": "#cf96ff",
-                        "on-background": "#f9f5f8",
-                        "surface-dim": "#0e0e10",
-                        "on-surface-variant": "#adaaad",
-                        "surface-container-lowest": "#000000",
-                        "error": "#ff6e84",
-                        "tertiary-fixed-dim": "#ff68e3",
-                        "outline": "#767577",
-                        "surface-container-low": "#131315",
-                        "surface-container-highest": "#262528",
-                        "on-tertiary-fixed": "#33002d",
-                        "on-tertiary-fixed-variant": "#6d0061",
-                        "on-surface": "#f9f5f8",
-                        "on-primary-container": "#37005f",
-                        "error-dim": "#d73357",
-                        "outline-variant": "#48474a",
-                        "surface-container-high": "#1f1f22",
-                        "on-secondary-fixed-variant": "#005e64",
-                        "on-tertiary": "#42003a",
-                        "primary": "#cf96ff",
-                        "primary-fixed": "#c683ff",
-                        "error-container": "#a70138",
-                        "primary-dim": "#a533ff",
-                        "tertiary-dim": "#ff59e3",
-                        "on-primary": "#480079",
-                        "tertiary": "#ff59e3",
-                        "on-tertiary-container": "#1b0017",
-                        "inverse-primary": "#8d00e6",
-                        "on-secondary-fixed": "#003f43",
-                        "on-primary-fixed-variant": "#450074",
-                        "primary-fixed-dim": "#bc6fff",
-                        "secondary-container": "#006970",
-                        "on-secondary-container": "#e3fdff",
-                        "on-error-container": "#ffb2b9",
-                        "primary-container": "#c683ff",
-                        "secondary-dim": "#00deec"
+                    colors: {
+                        "secondary-fixed-dim":"#00deec","secondary":"#00eefc","on-secondary":"#005359",
+                        "on-primary-fixed":"#000000","background":"#0e0e10","secondary-fixed":"#00eefc",
+                        "inverse-on-surface":"#565557","tertiary-container":"#ff05e5","tertiary-fixed":"#ff85e4",
+                        "inverse-surface":"#fcf8fb","surface":"#0e0e10","surface-bright":"#2c2c2f",
+                        "surface-container":"#19191c","surface-variant":"#262528","on-error":"#490013",
+                        "surface-tint":"#cf96ff","on-background":"#f9f5f8","surface-dim":"#0e0e10",
+                        "on-surface-variant":"#adaaad","surface-container-lowest":"#000000","error":"#ff6e84",
+                        "tertiary-fixed-dim":"#ff68e3","outline":"#767577","surface-container-low":"#131315",
+                        "surface-container-highest":"#262528","on-tertiary-fixed":"#33002d",
+                        "on-tertiary-fixed-variant":"#6d0061","on-surface":"#f9f5f8",
+                        "on-primary-container":"#37005f","error-dim":"#d73357","outline-variant":"#48474a",
+                        "surface-container-high":"#1f1f22","on-secondary-fixed-variant":"#005e64",
+                        "on-tertiary":"#42003a","primary":"#cf96ff","primary-fixed":"#c683ff",
+                        "error-container":"#a70138","primary-dim":"#a533ff","tertiary-dim":"#ff59e3",
+                        "on-primary":"#480079","tertiary":"#ff59e3","on-tertiary-container":"#1b0017",
+                        "inverse-primary":"#8d00e6","on-secondary-fixed":"#003f43",
+                        "on-primary-fixed-variant":"#450074","primary-fixed-dim":"#bc6fff",
+                        "secondary-container":"#006970","on-secondary-container":"#e3fdff",
+                        "on-error-container":"#ffb2b9","primary-container":"#c683ff","secondary-dim":"#00deec"
                     },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "fontFamily": {
-                        "headline": ["Space Grotesk"],
-                        "body": ["Inter"],
-                        "label": ["Manrope"]
-                    }
-                },
-            },
+                    borderRadius: { DEFAULT:"0.25rem", lg:"0.5rem", xl:"0.75rem", full:"9999px" },
+                    fontFamily: { headline:["Space Grotesk"], body:["Inter"], label:["Manrope"] }
+                }
+            }
         }
     </script>
     <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-
-        .glass-panel {
-            background: rgba(38, 37, 40, 0.6);
-            backdrop-filter: blur(20px);
-        }
-
-        .neon-glow {
-            box-shadow: 0 0 15px rgba(207, 150, 255, 0.4);
-        }
-
-        .viewport-gradient {
-            background: radial-gradient(circle at 50% 50%, #1f1f22 0%, #0e0e10 100%);
-        }
+        .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+        .glass-panel { background: rgba(38,37,40,0.6); backdrop-filter: blur(20px); }
+        .neon-glow  { box-shadow: 0 0 15px rgba(207,150,255,0.4); }
+        .viewport-gradient { background: radial-gradient(circle at 50% 50%, #1f1f22 0%, #0e0e10 100%); }
     </style>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/examples/jsm/loaders/OBJLoader.js": "https://unpkg.com/three@0.165.0/examples/jsm/loaders/OBJLoader.js",
+            "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js"
+        }
+    }
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body class="bg-background text-on-surface font-body selection:bg-primary/30">
-    <!-- SideNavBar Anchor -->
-    <aside
-        class="flex flex-col fixed left-0 top-0 h-full h-screen w-64 border-r border-[#1f1f22]/15 bg-[#131315] dark:bg-[#131315] z-50">
+
+    <!-- Sidebar -->
+    <aside class="flex flex-col fixed left-0 top-0 h-screen w-64 border-r border-[#1f1f22]/15 bg-[#131315] z-50">
         <div class="p-6">
-            <div
-                class="text-xl font-bold bg-gradient-to-br from-[#cf96ff] to-[#a533ff] bg-clip-text text-transparent font-['Space_Grotesk'] tracking-tight">
-                Xemy</div>
+            <div class="text-xl font-bold bg-gradient-to-br from-[#cf96ff] to-[#a533ff] bg-clip-text text-transparent font-[Space_Grotesk] tracking-tight">Xemy</div>
             <div class="text-[10px] text-gray-500 font-label tracking-widest mt-1 opacity-70">V0.1 Alpha</div>
         </div>
         <nav class="flex-1 px-4 space-y-2">
-            <a class="flex items-center gap-3 px-4 py-3 text-[#cf96ff] font-bold border-r-2 border-[#cf96ff] bg-[#cf96ff]/5 font-['Space_Grotesk'] tracking-tight transition-colors duration-200"
-                href="#">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span>Dashboard</span>
+            <a class="flex items-center gap-3 px-4 py-3 text-[#cf96ff] font-bold border-r-2 border-[#cf96ff] bg-[#cf96ff]/5 font-[Space_Grotesk] tracking-tight transition-colors duration-200" href="#">
+                <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-['Space_Grotesk'] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200 scale-95 active:scale-90"
-                href="#">
-                <span class="material-symbols-outlined">inventory_2</span>
-                <span>Assets</span>
+            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-[Space_Grotesk] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200" href="#">
+                <span class="material-symbols-outlined">inventory_2</span><span>Assets</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-['Space_Grotesk'] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200 scale-95 active:scale-90"
-                href="#">
-                <span class="material-symbols-outlined">auto_awesome</span>
-                <span>Generations</span>
+            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-[Space_Grotesk] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200" href="#">
+                <span class="material-symbols-outlined">auto_awesome</span><span>Generations</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-['Space_Grotesk'] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200 scale-95 active:scale-90"
-                href="#">
-                <span class="material-symbols-outlined">settings</span>
-                <span>Settings</span>
+            <a class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-gray-300 font-[Space_Grotesk] tracking-tight hover:bg-[#1f1f22] transition-colors duration-200" href="#">
+                <span class="material-symbols-outlined">settings</span><span>Settings</span>
             </a>
         </nav>
         <div class="p-6 border-t border-outline-variant/10">
-            <button
-                class="w-full py-3 rounded-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-bold text-sm tracking-tight hover:brightness-110 transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-sm">add</span>
-                New Project
-            </button>
-            <div class="mt-6 flex items-center gap-3 px-2">
-                <div
-                    class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
-                    <img alt="User Avatar" class="w-full h-full object-cover"
-                        data-alt="close-up portrait of a digital artist in soft blue studio lighting with high detail"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDPSBMjC-UzotvYI3MRvoAucnJJPz4YkcsxDIpfVRR_iULzdMPhoNRmbh1XYu8d28sUUvbUslb4URiI157nWQ8MFgnYLAjHaYdLJb7E1knDGZwSaKPoMWf_SoqY09qrJbzgX-oFggjXxnbonlvHri_aQ4DQOg3sAQEBx3D2-I0bcxXBokyeMivPXZr5oRHeagvjPzqd1zIUVSZVG8cF32ykk5fCDKoTAPwHJzMNzbjK9FCX2P1NV4DqmrXGr-y5NlX4NrIE2tGVhQ" />
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20">
+                    <span id="user-initials" class="text-xs font-bold text-primary">?</span>
                 </div>
                 <div class="flex flex-col">
-                    <span class="text-xs font-bold">Alex Chen</span>
-                    <span class="text-[10px] text-on-surface-variant">Pro Plan</span>
+                    <span class="text-xs font-bold" id="user-name">Loading...</span>
+                    <span class="text-[10px] text-on-surface-variant" id="user-plan">-</span>
                 </div>
             </div>
         </div>
     </aside>
-    <!-- Main Workspace Container -->
+
+    <!-- Main -->
     <main class="ml-64 flex flex-col h-screen">
-        <!-- TopAppBar Anchor -->
-        <header
-            class="w-full h-16 sticky top-0 z-50 flex justify-between items-center px-6 bg-[#0e0e10]/60 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+
+        <!-- Top Bar -->
+        <header class="w-full h-16 sticky top-0 z-50 flex justify-between items-center px-6 bg-[#0e0e10]/60 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <div class="flex items-center gap-6">
-                <div class="relative group">
-                    <span
-                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                    <input
-                        class="bg-surface-container-high border-none rounded-lg pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-[#cf96ff] transition-all placeholder:text-on-surface-variant/50"
-                        placeholder="Search projects..." type="text" />
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+                    <input class="bg-surface-container-high border-none rounded-lg pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-[#cf96ff] transition-all placeholder:text-on-surface-variant/50" placeholder="Search projects..." type="text" />
                 </div>
             </div>
-            <div class="flex items-center gap-6 font-['Space_Grotesk'] text-sm">
+            <div class="flex items-center gap-6 font-[Space_Grotesk] text-sm">
                 <a class="text-gray-400 hover:text-white transition-opacity" href="#">Docs</a>
                 <a class="text-gray-400 hover:text-white transition-opacity" href="#">Community</a>
                 <div class="flex items-center gap-4 ml-4 pl-4 border-l border-outline-variant/20">
-                    <button class="text-gray-400 hover:text-white transition-opacity">
-                        <span class="material-symbols-outlined">notifications</span>
-                    </button>
-                    <button class="text-gray-400 hover:text-white transition-opacity">
-                        <span class="material-symbols-outlined">help_outline</span>
-                    </button>
+                    <button class="text-gray-400 hover:text-white transition-opacity"><span class="material-symbols-outlined">notifications</span></button>
+                    <button class="text-gray-400 hover:text-white transition-opacity"><span class="material-symbols-outlined">help_outline</span></button>
                 </div>
             </div>
         </header>
-        <!-- Viewport & Panels Shell -->
-        <div class="flex-1 flex overflow-hidden relative">
-            <!-- Left Panel: Outliner/Layers -->
-            <section class="w-72 bg-surface-container-low flex flex-col border-r border-outline-variant/10">
-                <div class="p-4 flex items-center justify-between">
-                    <h2 class="font-headline text-sm font-bold tracking-tight text-on-surface/80">SCENE GRAPH</h2>
-                    <span class="material-symbols-outlined text-sm text-on-surface-variant">filter_list</span>
-                </div>
-                <div class="flex-1 overflow-y-auto px-2 space-y-1">
-                    <div class="group flex items-center gap-2 p-2 rounded-lg bg-primary/5 border-l-2 border-primary">
-                        <span class="material-symbols-outlined text-primary text-sm">view_in_ar</span>
-                        <span class="text-sm font-label text-on-surface">Main_Sculpt_01</span>
-                        <span
-                            class="material-symbols-outlined text-[16px] ml-auto text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">visibility</span>
-                    </div>
-                    <div
-                        class="group flex items-center gap-2 p-2 rounded-lg hover:bg-surface-container-high transition-colors">
-                        <span class="material-symbols-outlined text-secondary text-sm">lightbulb</span>
-                        <span class="text-sm font-label text-on-surface-variant">Ambient_Light</span>
-                        <span
-                            class="material-symbols-outlined text-[16px] ml-auto text-on-surface-variant">visibility</span>
-                    </div>
-                    <div
-                        class="group flex items-center gap-2 p-2 rounded-lg hover:bg-surface-container-high transition-colors">
-                        <span class="material-symbols-outlined text-tertiary text-sm">videocam</span>
-                        <span class="text-sm font-label text-on-surface-variant">Perspective_Cam</span>
-                        <span
-                            class="material-symbols-outlined text-[16px] ml-auto text-on-surface-variant">visibility</span>
-                    </div>
-                    <div class="pt-4 px-2 pb-2">
-                        <div class="h-[1px] bg-outline-variant/10 mb-4"></div>
-                        <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">History
-                        </h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-secondary-dim"></div>
-                                <span class="text-xs text-on-surface-variant italic">Geometry optimized (12s ago)</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary-dim"></div>
-                                <span class="text-xs text-on-surface-variant italic">Material applied: Chrome_V3</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!-- Center: 3D Viewport -->
-            <section class="flex-1 relative viewport-gradient flex items-center justify-center overflow-hidden">
-                <!-- Grid Lines Overlay -->
+
+        <!-- Full-bleed viewport -->
+        <div class="flex-1 relative overflow-hidden">
+            <section id="viewport-container" class="absolute inset-0 viewport-gradient">
+
+                <!-- CSS grid overlay -->
                 <div class="absolute inset-0 pointer-events-none opacity-10"
-                    style="background-image: linear-gradient(#48474a 1px, transparent 1px), linear-gradient(90deg, #48474a 1px, transparent 1px); background-size: 40px 40px;">
-                </div>
-                <!-- 3D Placeholder Graphic -->
-                <div class="relative w-[500px] h-[500px] flex items-center justify-center">
-                    <!-- Glassy Spheres Backdrop -->
-                    <div class="absolute -top-12 -left-20 w-64 h-64 bg-primary/20 blur-[100px] rounded-full"></div>
-                    <div class="absolute -bottom-12 -right-20 w-64 h-64 bg-secondary/10 blur-[100px] rounded-full">
-                    </div>
-                    <!-- The "Model" -->
-                    <div
-                        class="relative z-10 w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-outline-variant/20 flex items-center justify-center group cursor-move">
-                        <img alt="3D Model"
-                            class="w-full h-full object-cover scale-110 group-hover:scale-105 transition-transform duration-1000"
-                            data-alt="abstract iridescent 3d crystalline structure floating in dark space with dramatic cyan and purple studio lighting"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCtaV65sMI3FfE9hVziIdRUKbrSzEc3HQOoZYpTsyhOy6ovy2JOS5QXbwY8q8wAbOR7DpWjmcwB3ddLZjIi8D3tEDyAQ6HoEvmwLlQQ-JQQvtHWmaUELF4Wj_nFtKwQYnt-N6Z7dpQgLK-mZ4GbAiPeCqIcrcvz8DScLa2PFVu7kdHGqj8dPzYYbyVyU5lDmnXFnButFv3Gw-HWgRYw3D1d-RyMFKScnaOWcgFas6lB1zsHuYPhkic9YHK830onh4p9PRATyTbDu4" />
-                        <div
-                            class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-60">
-                        </div>
-                        <!-- Viewport Controls -->
-                        <div
-                            class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface-container-highest/80 backdrop-blur-md rounded-full border border-outline-variant/30 p-1.5">
-                            <button class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface">
-                                <span class="material-symbols-outlined text-lg">videocam</span>
-                            </button>
-                            <button class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface">
-                                <span class="material-symbols-outlined text-lg">grid_on</span>
-                            </button>
-                            <div class="w-px h-4 bg-outline-variant/30 mx-1"></div>
-                            <button class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface">
-                                <span class="material-symbols-outlined text-lg">screenshot_region</span>
-                            </button>
-                            <button class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface">
-                                <span class="material-symbols-outlined text-lg">open_in_full</span>
-                            </button>
-                        </div>
+                    style="background-image:linear-gradient(#48474a 1px,transparent 1px),linear-gradient(90deg,#48474a 1px,transparent 1px);background-size:40px 40px;"></div>
+
+                <!-- Three.js canvas -->
+                <canvas id="viewport-canvas" class="absolute inset-0 w-full h-full"></canvas>
+
+                <!-- Loading overlay -->
+                <div id="viewport-loader" class="hidden absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-20">
+                    <div class="flex flex-col items-center gap-3">
+                        <svg class="animate-spin w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        <span class="text-xs text-on-surface-variant font-label">Loading model...</span>
                     </div>
                 </div>
-                <!-- Gizmo Indicator -->
-                <div class="absolute top-6 right-6 w-24 h-24 flex items-center justify-center">
+
+                <!-- Viewport controls (sits above prompt bar) -->
+                <div class="absolute bottom-36 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface-container-highest/80 backdrop-blur-md rounded-full border border-outline-variant/30 p-1.5 z-10">
+                    <button id="ctrl-camera" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Reset Camera">
+                        <span class="material-symbols-outlined text-lg">videocam</span>
+                    </button>
+                    <button id="ctrl-grid" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Toggle Grid">
+                        <span class="material-symbols-outlined text-lg">grid_on</span>
+                    </button>
+                    <div class="w-px h-4 bg-outline-variant/30 mx-1"></div>
+                    <button id="ctrl-screenshot" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Screenshot">
+                        <span class="material-symbols-outlined text-lg">screenshot_region</span>
+                    </button>
+                    <button id="export-btn" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Export OBJ">
+                        <span class="material-symbols-outlined text-lg">download</span>
+                    </button>
+                    <button id="ctrl-fullscreen" class="p-2 hover:bg-primary/20 rounded-full transition-colors text-on-surface" title="Fullscreen">
+                        <span class="material-symbols-outlined text-lg">open_in_full</span>
+                    </button>
+                </div>
+
+                <!-- XYZ Gizmo -->
+                <div class="absolute top-6 right-6 w-24 h-24 flex items-center justify-center z-10">
                     <div class="relative w-full h-full">
                         <div class="absolute top-1/2 left-0 w-full h-[1px] bg-red-500/40"></div>
                         <div class="absolute top-0 left-1/2 w-[1px] h-full bg-green-500/40"></div>
                         <div class="absolute inset-0 flex items-center justify-center">
                             <div class="w-4 h-4 rounded-full border-2 border-blue-500/40"></div>
                         </div>
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] text-green-400 font-label">Y
-                        </div>
-                        <div class="absolute top-1/2 right-0 -translate-y-1/2 text-[10px] text-red-400 font-label">X
-                        </div>
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] text-green-400 font-label">Y</div>
+                        <div class="absolute top-1/2 right-0 -translate-y-1/2 text-[10px] text-red-400 font-label">X</div>
                     </div>
                 </div>
             </section>
-            <!-- Right Panel: Properties -->
-            <section class="w-80 bg-surface-container-low flex flex-col border-l border-outline-variant/10">
-                <div class="p-4 flex items-center justify-between border-b border-outline-variant/5">
-                    <h2 class="font-headline text-sm font-bold tracking-tight text-on-surface/80">PROPERTIES</h2>
-                    <div class="flex gap-2">
-                        <span
-                            class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer">tune</span>
-                        <span
-                            class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer">more_vert</span>
+
+            <!-- Options panel -->
+            <div id="options-panel" class="hidden absolute bottom-32 left-1/2 -translate-x-1/2 w-80 bg-surface-container-high border border-outline-variant/20 rounded-2xl p-5 space-y-4 z-50 shadow-2xl">
+                <h3 class="text-xs font-bold tracking-widest text-on-surface/80 uppercase">Generation Options</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[10px] text-on-surface-variant">
+                        <label for="opt-guidance">Guidance Scale</label>
+                        <span id="guidance-val" class="text-secondary font-bold">15</span>
                     </div>
+                    <input id="opt-guidance" type="range" min="1" max="30" value="15" class="w-full accent-primary cursor-pointer" oninput="document.getElementById('guidance-val').textContent=this.value" />
                 </div>
-                <div class="flex-1 overflow-y-auto">
-                    <!-- Transform Section -->
-                    <div class="p-4 space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-primary tracking-wide">TRANSFORM</span>
-                            <span class="material-symbols-outlined text-xs text-on-surface-variant">expand_more</span>
-                        </div>
-                        <div class="space-y-3">
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="relative">
-                                    <span class="absolute left-2 top-1.5 text-[8px] text-red-400 font-bold">X</span>
-                                    <input
-                                        class="w-full bg-surface-container-highest border-none rounded-md pl-5 py-1 text-xs font-label focus:ring-1 focus:ring-primary/50"
-                                        type="text" value="0.00" />
-                                </div>
-                                <div class="relative">
-                                    <span class="absolute left-2 top-1.5 text-[8px] text-green-400 font-bold">Y</span>
-                                    <input
-                                        class="w-full bg-surface-container-highest border-none rounded-md pl-5 py-1 text-xs font-label focus:ring-1 focus:ring-primary/50"
-                                        type="text" value="1.45" />
-                                </div>
-                                <div class="relative">
-                                    <span class="absolute left-2 top-1.5 text-[8px] text-blue-400 font-bold">Z</span>
-                                    <input
-                                        class="w-full bg-surface-container-highest border-none rounded-md pl-5 py-1 text-xs font-label focus:ring-1 focus:ring-primary/50"
-                                        type="text" value="0.00" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Material Section -->
-                    <div class="p-4 space-y-4 border-t border-outline-variant/5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-secondary tracking-wide uppercase">Appearance</span>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-on-surface-variant">Material</span>
-                                <div
-                                    class="flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant/10">
-                                    <div class="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-secondary"></div>
-                                    <span class="text-xs font-medium">Iridescent_Glass</span>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-[10px] text-on-surface-variant">
-                                    <span>Roughness</span>
-                                    <span>0.12</span>
-                                </div>
-                                <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden relative">
-                                    <div class="absolute top-0 left-0 h-full w-[12%] bg-secondary"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-[10px] text-on-surface-variant">
-                                    <span>Metallic</span>
-                                    <span>0.85</span>
-                                </div>
-                                <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden relative">
-                                    <div class="absolute top-0 left-0 h-full w-[85%] bg-primary"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Export/Actions -->
-                    <div class="p-4 mt-4">
-                        <button
-                            class="w-full py-3 rounded-xl bg-surface-container-highest border border-outline-variant/20 text-xs font-bold tracking-widest hover:bg-primary/10 hover:border-primary/30 transition-all uppercase flex items-center justify-center gap-2">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                            Export Mesh
-                        </button>
-                    </div>
+                <div class="space-y-2">
+                    <label class="block text-[10px] text-on-surface-variant mb-1" for="opt-quality">Quality</label>
+                    <select id="opt-quality" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg text-xs py-2 px-3 text-on-surface focus:ring-1 focus:ring-primary/50 cursor-pointer">
+                        <option value="fast">Fast (32 steps)</option>
+                        <option value="balanced" selected>Balanced (64 steps)</option>
+                        <option value="quality">Quality (128 steps)</option>
+                    </select>
                 </div>
-            </section>
-            <!-- Bottom Prompt Bar -->
+            </div>
+
+            <!-- Prompt bar -->
             <div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-4xl z-50">
-                <div
-                    class="glass-panel rounded-2xl border border-outline-variant/20 shadow-2xl p-2 flex items-center gap-3">
+                <div class="glass-panel rounded-2xl border border-outline-variant/20 shadow-2xl p-2 flex items-center gap-3">
                     <div class="flex-1 relative flex items-center">
-                        <div
-                            class="absolute left-4 w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center">
+                        <div class="absolute left-4 w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center">
                             <span class="material-symbols-outlined text-primary text-lg">auto_awesome</span>
                         </div>
-                        <input
+                        <input id="prompt-input"
                             class="w-full bg-transparent border-none focus:ring-0 pl-16 pr-4 py-4 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40"
                             placeholder="Describe the 3D model you want to forge..." type="text" />
                     </div>
                     <div class="flex items-center gap-2 pr-2">
-                        <button
-                            class="px-4 py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors">
-                            Options
-                        </button>
-                        <button
-                            class="neon-glow px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-bold text-sm tracking-tight flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
-                            Forge
-                            <span class="material-symbols-outlined text-[18px]">bolt</span>
+                        <button id="options-btn" class="px-4 py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors">Options</button>
+                        <button id="forge-btn" class="neon-glow px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-bold text-sm tracking-tight flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+                            Forge <span class="material-symbols-outlined text-[18px]">bolt</span>
                         </button>
                     </div>
                 </div>
-                <!-- Status/Hint Tooltip -->
                 <div class="mt-3 flex justify-center">
-                    <div
-                        class="px-4 py-1.5 rounded-full bg-surface-container-low/80 backdrop-blur-sm border border-outline-variant/10 flex items-center gap-2">
-                        <div class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></div>
-                        <span class="text-[10px] font-label text-on-surface-variant">Ready to generate. Estimated time:
-                            <span class="text-secondary">45s</span></span>
+                    <div class="px-4 py-1.5 rounded-full bg-surface-container-low/80 backdrop-blur-sm border border-outline-variant/10 flex items-center gap-2">
+                        <div id="status-dot" class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></div>
+                        <span id="status-text" class="text-[10px] font-label text-on-surface-variant">Ready to generate</span>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-</body>
 
+    <script type="module" src="workspace.js"></script>
+</body>
 </html>
