@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dimensional Synth | Access the Ethereal Forge</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Manrope:wght@400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#00deec",
+                        "secondary": "#00eefc",
+                        "on-secondary": "#005359",
+                        "on-primary-fixed": "#000000",
+                        "background": "#0e0e10",
+                        "secondary-fixed": "#00eefc",
+                        "inverse-on-surface": "#565557",
+                        "tertiary-container": "#ff05e5",
+                        "tertiary-fixed": "#ff85e4",
+                        "inverse-surface": "#fcf8fb",
+                        "surface": "#0e0e10",
+                        "surface-bright": "#2c2c2f",
+                        "surface-container": "#19191c",
+                        "surface-variant": "#262528",
+                        "on-error": "#490013",
+                        "surface-tint": "#cf96ff",
+                        "on-background": "#f9f5f8",
+                        "surface-dim": "#0e0e10",
+                        "on-surface-variant": "#adaaad",
+                        "surface-container-lowest": "#000000",
+                        "error": "#ff6e84",
+                        "tertiary-fixed-dim": "#ff68e3",
+                        "outline": "#767577",
+                        "surface-container-low": "#131315",
+                        "surface-container-highest": "#262528",
+                        "on-tertiary-fixed": "#33002d",
+                        "on-tertiary-fixed-variant": "#6d0061",
+                        "on-surface": "#f9f5f8",
+                        "on-primary-container": "#37005f",
+                        "error-dim": "#d73357",
+                        "outline-variant": "#48474a",
+                        "surface-container-high": "#1f1f22",
+                        "on-secondary-fixed-variant": "#005e64",
+                        "on-tertiary": "#42003a",
+                        "primary": "#cf96ff",
+                        "primary-fixed": "#c683ff",
+                        "error-container": "#a70138",
+                        "primary-dim": "#a533ff",
+                        "tertiary-dim": "#ff59e3",
+                        "on-primary": "#480079",
+                        "tertiary": "#ff59e3",
+                        "on-tertiary-container": "#1b0017",
+                        "inverse-primary": "#8d00e6",
+                        "on-secondary-fixed": "#003f43",
+                        "on-primary-fixed-variant": "#450074",
+                        "primary-fixed-dim": "#bc6fff",
+                        "secondary-container": "#006970",
+                        "on-secondary-container": "#e3fdff",
+                        "on-error-container": "#ffb2b9",
+                        "primary-container": "#c683ff",
+                        "secondary-dim": "#00deec"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0e0e10;
+            color: #f9f5f8;
+        }
+
+        .font-headline {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .font-label {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(38, 37, 40, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(72, 71, 74, 0.15);
+        }
+
+        .text-glow-primary {
+            text-shadow: 0 0 15px rgba(207, 150, 255, 0.4);
+        }
+
+        .hero-gradient {
+            background: radial-gradient(circle at 30% 30%, rgba(207, 150, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(0, 238, 252, 0.1) 0%, transparent 50%);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background text-on-background min-h-screen selection:bg-primary/30 selection:text-primary overflow-hidden">
+    <!-- Auth Shell Suppression: Per instructions, TopAppBar and SideNav are hidden for Transactional pages -->
+    <main class="flex min-h-screen w-full">
+        <!-- Visual Column (Asymmetric Split) -->
+        <section class="hidden lg:flex lg:w-3/5 relative overflow-hidden bg-surface-container-lowest">
+            <!-- Background Image with data-alt -->
+            <div class="absolute inset-0 z-0">
+                <img alt="3D abstract visual" class="w-full h-full object-cover opacity-60"
+                    data-alt="Intricate 3D abstract sculpture made of translucent iridescent glass with internal neon purple light filaments floating in a deep black void"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAP6Tun3JfqJSGKfMRAyymKod5UP898kOPcVAtF_v9I2hY8mmxiSpS0bBQhJ8PxVbAQHD1YEosslPIkceK5okhxU8CuRT6R-I2UflJCq9i5_czJhrW4PPliZtJtJtiQ07SadPEdA2JCDdgyzPCNol4Im4FE_Xl6AALs2MFUynpu6PwTmv9KS_iXvFAzy-cDCtwo7QC5R_UPIJmduaFjfArYNqEQgdVf0sMGBefuegzzGfRgMOfeWmttkmWjA5XkaXjE8X9j5CN11l8" />
+            </div>
+            <!-- Ambient Glow Overlay -->
+            <div class="absolute inset-0 z-10 hero-gradient"></div>
+            <!-- Content Overlay -->
+            <div class="relative z-20 flex flex-col justify-between p-16 w-full">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center shadow-[0_0_20px_rgba(207,150,255,0.3)]">
+                        <span class="material-symbols-outlined text-on-primary-fixed font-bold">layers</span>
+                    </div>
+                    <span
+                        class="font-headline text-2xl font-bold tracking-tight bg-gradient-to-r from-on-background to-on-background/60 bg-clip-text text-transparent">Dimensional
+                        Synth</span>
+                </div>
+                <div class="max-w-xl">
+                    <h1 class="font-headline text-6xl font-bold leading-[1.1] tracking-tighter mb-8">
+                        Sculpt the <span class="text-primary text-glow-primary">Infinite</span>
+                    </h1>
+                    <p class="text-on-surface-variant text-lg leading-relaxed mb-12 max-w-md">
+                        Harness generative intelligence to forge high-fidelity 3D assets in a seamless, editorial
+                        workspace.
+                    </p>
+                    <!-- Stats / Social Proof (Editorial Feel) -->
+                    <div class="flex gap-12">
+                        <div>
+                            <p class="font-headline text-3xl font-bold text-secondary">42k+</p>
+                            <p class="font-label text-xs uppercase tracking-widest text-outline">Assets Forged</p>
+                        </div>
+                        <div>
+                            <p class="font-headline text-3xl font-bold text-tertiary">0.4s</p>
+                            <p class="font-label text-xs uppercase tracking-widest text-outline">Inference Latency</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-outline font-label text-sm">
+                    <span>V0.1 Alpha</span>
+                    <span class="h-1 w-1 rounded-full bg-outline/40"></span>
+                    <span>Built for Creators</span>
+                </div>
+            </div>
+        </section>
+        <!-- Form Column -->
+        <section class="w-full lg:w-2/5 flex flex-col items-center justify-center p-8 lg:p-20 bg-surface">
+            <div class="w-full max-w-md space-y-10">
+                <!-- Mobile Logo -->
+                <div class="lg:hidden flex justify-center mb-12">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-on-primary-fixed text-sm">layers</span>
+                        </div>
+                        <span class="font-headline text-xl font-bold">Dimensional Synth</span>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <h2 class="font-headline text-4xl font-bold tracking-tight">Welcome Back</h2>
+                    <p class="text-on-surface-variant font-body">Enter your credentials to enter the forge.</p>
+                </div>
+                <!-- Form -->
+                <form class="space-y-6">
+                    <div class="space-y-4">
+                        <div class="group">
+                            <label
+                                class="block font-label text-xs uppercase tracking-widest text-outline mb-2 group-focus-within:text-secondary transition-colors">Email
+                                Address</label>
+                            <input
+                                class="w-full bg-surface-container-highest border-none rounded-t-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-0 transition-all border-b border-transparent focus:border-secondary"
+                                placeholder="name@domain.com" type="email" />
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between items-center mb-2">
+                                <label
+                                    class="block font-label text-xs uppercase tracking-widest text-outline group-focus-within:text-secondary transition-colors">Password</label>
+                                <a class="text-xs font-label text-primary hover:text-primary-dim transition-colors"
+                                    href="#">Forgot?</a>
+                            </div>
+                            <input
+                                class="w-full bg-surface-container-highest border-none rounded-t-xl px-4 py-4 text-on-surface placeholder:text-outline/50 focus:ring-0 transition-all border-b border-transparent focus:border-secondary"
+                                placeholder="••••••••" type="password" />
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input
+                            class="w-4 h-4 rounded border-outline bg-surface-container-high text-primary focus:ring-primary/20"
+                            id="remember" type="checkbox" />
+                        <label class="text-sm text-on-surface-variant font-body select-none" for="remember">Remember for
+                            30 days</label>
+                    </div>
+                    <button
+                        class="w-full h-14 rounded-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-headline font-bold text-lg hover:shadow-[0_0_25px_rgba(207,150,255,0.3)] transition-all active:scale-[0.98]"
+                        type="submit">
+                        Sign In
+                    </button>
+                </form>
+                <!-- Divider -->
+                <div class="relative flex items-center py-4">
+                    <div class="flex-grow border-t border-outline/15"></div>
+                    <span class="flex-shrink mx-4 text-outline font-label text-xs uppercase tracking-widest">Or access
+                        with</span>
+                    <div class="flex-grow border-t border-outline/15"></div>
+                </div>
+                <!-- Social Logins -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button
+                        class="flex items-center justify-center gap-3 h-12 rounded-xl bg-surface-container-high border border-outline/10 hover:bg-surface-container-highest transition-colors group">
+                        <svg class="w-5 h-5 opacity-70 group-hover:opacity-100" viewbox="0 0 24 24">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="currentColor"></path>
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="currentColor"></path>
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                fill="currentColor"></path>
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
+                                fill="currentColor"></path>
+                        </svg>
+                        <span class="text-sm font-body">Google</span>
+                    </button>
+                    <button
+                        class="flex items-center justify-center gap-3 h-12 rounded-xl bg-surface-container-high border border-outline/10 hover:bg-surface-container-highest transition-colors group">
+                        <svg class="w-5 h-5 opacity-70 group-hover:opacity-100" fill="currentColor" viewbox="0 0 24 24">
+                            <path
+                                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12">
+                            </path>
+                        </svg>
+                        <span class="text-sm font-body">GitHub</span>
+                    </button>
+                </div>
+                <div class="pt-8 text-center">
+                    <p class="text-on-surface-variant text-sm font-body">
+                        New to Dimensional Synth?
+                        <a class="text-primary font-bold ml-1 hover:text-primary-dim transition-colors" href="#">Start
+                            Forging</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Decorative Elements (Fixed Gradients) -->
+    <div
+        class="fixed top-0 right-0 w-[500px] h-[500px] bg-secondary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none">
+    </div>
+    <div
+        class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none">
+    </div>
+</body>
+
+</html>

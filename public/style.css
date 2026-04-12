@@ -1,0 +1,60 @@
+/* Custom CSS for Xemy */
+
+/* Custom Model-Viewer adjustments */
+model-viewer {
+    --poster-color: transparent;
+    --progress-bar-color: #a78bfa;
+    --progress-bar-height: 4px;
+}
+
+model-viewer::part(default-progress-bar) {
+    background-color: #a78bfa;
+    box-shadow: 0 0 10px #a78bfa;
+}
+
+/* Glassmorphism panel utility */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Marquee Animation */
+.animate-marquee {
+    animation: scroll 20s linear infinite;
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-50% - 1.5rem)); /* Adjust based on content width */ }
+}
+
+.group-hover\:pause:hover {
+    animation-play-state: paused;
+}
+
+/* Showcase Card Hover Effects */
+.showcase-card:hover img {
+    opacity: 1;
+}
+
+.showcase-card:hover .prompt-overlay {
+    transform: translateY(0);
+}
+
+/* Dynamic Navbar Classes applied by JS */
+.nav-scrolled {
+    top: 1rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: 1024px !important;
+    border-radius: 9999px !important;
+    background-color: rgba(20, 20, 28, 0.7) !important; /* cyber-800 with opacity */
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5) !important;
+}

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dimensional Synth - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#00deec",
+                        "secondary": "#00eefc",
+                        "on-secondary": "#005359",
+                        "on-primary-fixed": "#000000",
+                        "background": "#0e0e10",
+                        "secondary-fixed": "#00eefc",
+                        "inverse-on-surface": "#565557",
+                        "tertiary-container": "#ff05e5",
+                        "tertiary-fixed": "#ff85e4",
+                        "inverse-surface": "#fcf8fb",
+                        "surface": "#0e0e10",
+                        "surface-bright": "#2c2c2f",
+                        "surface-container": "#19191c",
+                        "surface-variant": "#262528",
+                        "on-error": "#490013",
+                        "surface-tint": "#cf96ff",
+                        "on-background": "#f9f5f8",
+                        "surface-dim": "#0e0e10",
+                        "on-surface-variant": "#adaaad",
+                        "surface-container-lowest": "#000000",
+                        "error": "#ff6e84",
+                        "tertiary-fixed-dim": "#ff68e3",
+                        "outline": "#767577",
+                        "surface-container-low": "#131315",
+                        "surface-container-highest": "#262528",
+                        "on-tertiary-fixed": "#33002d",
+                        "on-tertiary-fixed-variant": "#6d0061",
+                        "on-surface": "#f9f5f8",
+                        "on-primary-container": "#37005f",
+                        "error-dim": "#d73357",
+                        "outline-variant": "#48474a",
+                        "surface-container-high": "#1f1f22",
+                        "on-secondary-fixed-variant": "#005e64",
+                        "on-tertiary": "#42003a",
+                        "primary": "#cf96ff",
+                        "primary-fixed": "#c683ff",
+                        "error-container": "#a70138",
+                        "primary-dim": "#a533ff",
+                        "tertiary-dim": "#ff59e3",
+                        "on-primary": "#480079",
+                        "tertiary": "#ff59e3",
+                        "on-tertiary-container": "#1b0017",
+                        "inverse-primary": "#8d00e6",
+                        "on-secondary-fixed": "#003f43",
+                        "on-primary-fixed-variant": "#450074",
+                        "primary-fixed-dim": "#bc6fff",
+                        "secondary-container": "#006970",
+                        "on-secondary-container": "#e3fdff",
+                        "on-error-container": "#ffb2b9",
+                        "primary-container": "#c683ff",
+                        "secondary-dim": "#00deec"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-panel {
+            background: rgba(38, 37, 40, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .glow-hover:hover {
+            box-shadow: 0 0 15px rgba(207, 150, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary-fixed overflow-x-hidden">
+    <!-- SideNavBar -->
+    <aside
+        class="flex flex-col fixed left-0 top-0 h-full h-screen w-64 border-r border-[#1f1f22]/15 bg-[#131315] dark:bg-[#131315] font-['Space_Grotesk'] tracking-tight z-50">
+        <div class="p-6">
+            <div
+                class="text-xl font-bold bg-gradient-to-br from-[#cf96ff] to-[#a533ff] bg-clip-text text-transparent mb-1">
+                Dimensional Synth</div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-label">V0.1 Alpha</div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <!-- Active: Dashboard -->
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 text-[#cf96ff] font-bold border-r-2 border-[#cf96ff] bg-[#cf96ff]/5"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="text-sm">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 text-gray-500 hover:text-gray-300 hover:bg-[#1f1f22]"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                <span class="text-sm">Assets</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 text-gray-500 hover:text-gray-300 hover:bg-[#1f1f22]"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+                <span class="text-sm">Generations</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 text-gray-500 hover:text-gray-300 hover:bg-[#1f1f22]"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span class="text-sm">Settings</span>
+            </a>
+        </nav>
+        <!-- User Stats Block -->
+        <div class="mx-4 mb-6 p-4 rounded-xl bg-surface-container-high border border-outline-variant/15">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-wider">Credit
+                    Balance</span>
+                <span class="text-secondary text-xs font-bold">84%</span>
+            </div>
+            <div class="h-1 w-full bg-surface-variant rounded-full overflow-hidden mb-3">
+                <div class="h-full bg-primary w-[84%]"></div>
+            </div>
+            <div class="text-xs text-on-surface font-medium">1,240 <span class="text-on-surface-variant font-normal">/
+                    1,500 units</span></div>
+        </div>
+        <div class="p-4 border-t border-outline-variant/10">
+            <button
+                class="w-full py-3 bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed rounded-full font-bold text-sm flex items-center justify-center gap-2 scale-100 hover:scale-[1.02] active:scale-95 transition-transform">
+                <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Project
+            </button>
+        </div>
+    </aside>
+    <!-- Main Canvas -->
+    <main class="ml-64 min-h-screen">
+        <!-- TopAppBar -->
+        <header
+            class="w-full h-16 sticky top-0 z-50 bg-[#0e0e10]/60 backdrop-blur-xl flex justify-between items-center px-8 font-['Space_Grotesk'] text-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center gap-6">
+                <div class="relative">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+                    <input
+                        class="bg-surface-container-highest border-none rounded-full py-2 pl-10 pr-6 text-xs w-64 focus:ring-1 focus:ring-[#cf96ff]"
+                        placeholder="Search creations..." type="text" />
+                </div>
+                <div class="flex gap-4">
+                    <a class="text-gray-400 hover:text-white transition-opacity" href="#">Docs</a>
+                    <a class="text-gray-400 hover:text-white transition-opacity" href="#">Community</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 text-gray-400 hover:text-white transition-opacity">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button class="p-2 text-gray-400 hover:text-white transition-opacity">
+                    <span class="material-symbols-outlined">help_outline</span>
+                </button>
+                <div class="h-8 w-8 rounded-full bg-surface-container-highest overflow-hidden border border-primary/20">
+                    <img alt="User Profile" class="w-full h-full object-cover"
+                        data-alt="close-up portrait of a digital artist with colorful futuristic lighting and bokeh background"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAioTduOdIH5CQ5u2ISjECviBZByh2lfC6DWFTSIpfUYlJpX_FEG6cngJjNLes67hkxOt_UgKtkHQZI2r18xWpb6FWFhAf6cUT3T7P-BwHZbtEf7srASaEEWf0AQylZ6FqsWij6YuqK71j5kjDrhLDoHSDgRee8axCzt5q_XsDzpS6s5G4OFcrBGhsnTV90C1rdUf7huNba1gM2IR__XlmAuOJGsR9YY0tDdrQeuYIYzIh9nH7-9ZNCga_pCMlK-aV8LuITwdNMkvE" />
+                </div>
+            </div>
+        </header>
+        <!-- Content Area -->
+        <div class="p-8 max-w-7xl mx-auto">
+            <!-- Hero Header -->
+            <section class="mb-12 relative">
+                <div class="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+                <div class="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-[100px]"></div>
+                <h1 class="text-5xl font-headline font-bold tracking-tighter mb-4">Welcome, <span
+                        class="text-primary">Creator</span>.</h1>
+                <p class="text-on-surface-variant text-lg max-w-2xl font-light">Your dimensional forge is ready.
+                    Continue sculpting your latest visions or explore what the community is bringing to life.</p>
+            </section>
+            <!-- Bento Grid: Projects & CTA -->
+            <section class="grid grid-cols-12 gap-6 mb-16">
+                <!-- Main CTA Card -->
+                <div
+                    class="col-span-12 lg:col-span-4 group relative overflow-hidden rounded-3xl bg-surface-container-low border border-outline-variant/15 flex flex-col p-8 justify-between min-h-[400px]">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div>
+                        <div class="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-primary"
+                                data-icon="add_circle">add_circle</span>
+                        </div>
+                        <h2 class="text-3xl font-headline font-bold mb-4">Forge New Reality</h2>
+                        <p class="text-on-surface-variant font-label text-sm leading-relaxed">Start a blank canvas with
+                            our latest AI mesh generation engine. Ready for 4K textures.</p>
+                    </div>
+                    <button
+                        class="relative mt-8 py-4 w-full bg-surface-container-highest text-on-surface border border-outline-variant/30 rounded-2xl font-bold tracking-tight hover:border-primary/50 transition-all overflow-hidden flex items-center justify-center gap-3">
+                        <span class="material-symbols-outlined text-secondary">rocket_launch</span>
+                        Create New Project
+                    </button>
+                </div>
+                <!-- Featured Project Card -->
+                <div
+                    class="col-span-12 lg:col-span-8 rounded-3xl overflow-hidden glass-panel border border-outline-variant/15 relative min-h-[400px] flex items-end">
+                    <img class="absolute inset-0 w-full h-full object-cover"
+                        data-alt="a majestic futuristic floating city made of iridescent glass and chrome during a sunset with cinematic lighting"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAb3wCoC-ejcjeX52bKAiVvr_en2ckoNEcmxhYl28aWNG2ggUUO9lRauMD4ayya2DvAuzj-8f9U8w8LP0VHFOlcjOxMb3v-j8qW-jIZsWQImpWO9iamvw4PMXgAP3kgf9AuNyx2B_9o-8Xv_OqBOW93HuZgQmnKyB9vfFfnyHT1kbP71GfFmRHTCyzHaxG0dW7WB3BErj-hAJp6nLFAEuHeolDJ9qcYafkia-rHHT2X8s-vZ1Nv5MeNs42nFFTvR50ybJ_uWOllEEc" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent">
+                    </div>
+                    <div class="relative p-10 w-full flex justify-between items-end">
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span
+                                    class="px-3 py-1 rounded-full bg-secondary/20 text-secondary text-[10px] font-bold uppercase tracking-widest">Active
+                                    Draft</span>
+                                <span class="text-on-surface-variant text-[10px] font-label">Modified 2h ago</span>
+                            </div>
+                            <h3 class="text-3xl font-headline font-bold tracking-tight">Neo-Tokyo Skyport</h3>
+                        </div>
+                        <button
+                            class="h-14 w-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all">
+                            <span class="material-symbols-outlined"
+                                style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <!-- My Projects Section -->
+            <section class="mb-16">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-headline font-bold">My Recent Projects</h2>
+                    <a class="text-primary text-sm font-label flex items-center gap-1 hover:gap-2 transition-all"
+                        href="#">
+                        View All Assets
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Project Card 1 -->
+                    <div class="group cursor-pointer">
+                        <div
+                            class="aspect-square rounded-2xl overflow-hidden mb-4 relative bg-surface-container-high border border-outline-variant/10">
+                            <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                data-alt="ultra detailed 3d model of a cyberpunk robotic arm with glowing blue circuits and hydraulic systems"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7l-OZ7h-oHay50wTN23_SA4q_eJnBVqBVlxBFCQhMKSQ68WEpXWokr9eNq1xpoOcKFF7yLdqCfHOUNEjqcEvv6YAmE3m4ai21EDSd5OEYon1JLn4Z2CVDFSH7WDWPT-6gdqhpkTPB3l9PFj0hH67MfrdrP277z0QaphqLI7DGtpOnAX9mnO0EG1cFAm1cLfjEUIkzsPeNfmZWJ8CnmZ9P2A482RZ6miyJWuMbsfOcadvbBXaULJ9q8pURpueQ5CI5G448M_5M4UE" />
+                            <div
+                                class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-3xl">open_in_new</span>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm mb-1 group-hover:text-primary transition-colors">Cyber-Limb
+                            Prototype</h4>
+                        <p class="text-xs text-on-surface-variant font-label">1.2M Polygons • OBJ</p>
+                    </div>
+                    <!-- Project Card 2 -->
+                    <div class="group cursor-pointer">
+                        <div
+                            class="aspect-square rounded-2xl overflow-hidden mb-4 relative bg-surface-container-high border border-outline-variant/10">
+                            <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                data-alt="floating crystalline structure with prismatic light refractions on a dark background"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWX-XeS6fWaxKPjt_HhyeS3LzG9U4lXIbWtBf7wJ-vID54bFCU-mtbmojhOy91pQCCyXg0I9izHSNHnP9kUCEaXb7-ZtQ804m_QAF47G692uj9aSHvcOFavobKsl-V6cmmflX1bg5SAsPj-YJo1IBw3j_Fh-CrSRAMo9nCuK6hrSC6Tco0_G7VQBABILXq3H59WafqP2UZrji51sRvcUc_cIzTGoePg8NWG4-ZFEFTrFVCf1WCCyXq2c7e0C7TNQMGVXQwiHKWYMU" />
+                            <div
+                                class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-3xl">open_in_new</span>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm mb-1 group-hover:text-primary transition-colors">Void Crystal</h4>
+                        <p class="text-xs text-on-surface-variant font-label">Procedural Texture • FBX</p>
+                    </div>
+                    <!-- Project Card 3 -->
+                    <div class="group cursor-pointer">
+                        <div
+                            class="aspect-square rounded-2xl overflow-hidden mb-4 relative bg-surface-container-high border border-outline-variant/10">
+                            <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                data-alt="atmospheric 3d render of an ancient stone monolith in a misty alien jungle with glowing bioluminescent plants"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqGTY-HOZMtsvPKziJ_TorXjwlTJd9kseS-d7ZX1Fl66xfrPciaHD0JN5hIGj6UcJQ02Rkj2RkA06rgGwmWkCP2aJLNlO_RmePy7jlLhAt0hebp1zfz7ovOLBcTKniq7HRQ4eZ2joPwobvYJYrdyiQ-uHQ_PBBQkw3hcMFTvm2SZPPU7lErFU5Ba0QZ7QeMAZzZtoZphBalVz6_TzK6Y8TzstkpW9eAusAzkFAjCWHiWRlAMljhA7KSB-6nUrIv9pGsYpcopJOqnw" />
+                            <div
+                                class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-3xl">open_in_new</span>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm mb-1 group-hover:text-primary transition-colors">Xenon Monolith
+                        </h4>
+                        <p class="text-xs text-on-surface-variant font-label">Environment Scene • USDZ</p>
+                    </div>
+                    <!-- Project Card 4 -->
+                    <div class="group cursor-pointer">
+                        <div
+                            class="aspect-square rounded-2xl overflow-hidden mb-4 relative bg-surface-container-high border border-outline-variant/10 flex items-center justify-center group-hover:bg-surface-container-highest transition-colors">
+                            <div class="text-center">
+                                <span class="material-symbols-outlined text-4xl text-outline mb-2">grid_view</span>
+                                <p class="text-xs text-on-surface-variant font-label">Browse all 24 projects</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Community Inspirations (High-End Vertical Cards) -->
+            <section class="mb-16">
+                <div class="flex items-center gap-4 mb-8">
+                    <span class="material-symbols-outlined text-tertiary">flare</span>
+                    <h2 class="text-2xl font-headline font-bold">Community Inspirations</h2>
+                </div>
+                <div class="grid grid-cols-12 gap-6">
+                    <div
+                        class="col-span-12 md:col-span-6 lg:col-span-3 aspect-[3/4] rounded-[2rem] overflow-hidden relative group">
+                        <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                            data-alt="highly detailed digital sculpture of an obsidian marble statue with flowing liquid gold veins in a dark studio setting"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB__8EJvtQp7xyhIhazygOBsXlH432jeiJmZ-aqP5YZt1ILWd3rr8S29krqh829343oCyHX74TTsXJqnRuw5ma0JuSgaTF81zwL05jSNl1Lbkpw9uHSwKjtCs82yQdaNsdx_M42VFaTxIVZANhq9PI_1DHQcL0QtIbotXTqPjq1Ws1dCLOIHPf5QLzrh3qqynJHQBWyoFWDFzgjq7Q2oiTKpfWcmXNWfyujUjpg1onR1aXvWXJUtdxG94uXWOi0oQ3mr_yV85EJ2C0" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <p class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Featured</p>
+                            <p class="font-bold text-lg leading-tight">Gilded Entropy</p>
+                            <p class="text-xs text-on-surface-variant font-label mt-1">By @XenonFlux</p>
+                        </div>
+                    </div>
+                    <div
+                        class="col-span-12 md:col-span-6 lg:col-span-3 aspect-[3/4] rounded-[2rem] overflow-hidden relative group translate-y-8">
+                        <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                            data-alt="a surreal 3d fractal cloud formation with iridescent lightning bolts inside a glass sphere"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_g8vSQr1O2dPz_8557pNh6t0OMgbRsFzF_16Duk2xEQUwlQM3DyWKOr9jujzxOq7P0oUkASb85ynKUP4p03Ih7uJwlawZqVHVhKGhgBX5v1x8w9vgN_wTQ95s--4MOTgBTvvQ6S2CtRSD0bOHUB0nKrOPvOTcA2BuALEPsWHKbE6LPihjlaVqdKH9HLqyUENSa6CpJy2E4-ZOTO0ZrqYwtvYpZiPG4X2RzGlU8HMaVy6efo0Hb9G9nF_31g5WPMJDg76E7zdKYP8" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <p class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Trending</p>
+                            <p class="font-bold text-lg leading-tight">Storm In Vitro</p>
+                            <p class="text-xs text-on-surface-variant font-label mt-1">By @NeuralDrift</p>
+                        </div>
+                    </div>
+                    <div
+                        class="col-span-12 md:col-span-6 lg:col-span-3 aspect-[3/4] rounded-[2rem] overflow-hidden relative group">
+                        <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                            data-alt="an intricate mechanical timepiece floating in a black void with microscopic clockwork details and brass finish"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB32qZNUZAdo77KpasF-cDFBt3H-r1CS3Woue3hGu1km_P4f5wDlb-Y-wnk0j9nyKxXD3Wrw5Zm5OCG1fmrjpMdG-KTEoRfoL3ahqmbU47gGYTIa5TuHGMGYhoDksGGfqXlfwVKK4oz0l74eyevx_uELTglSMZR3bo-fZVhu_wI0sLnTYobtO89wwbx5oKz5YRpRroTDZ9yqL-_tzo-OUGYLU2Rsdo06RgYcrXf0j-ZHFTriV6sacDarg8E1n7_wYcfIbJFoa29HZ8" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <p class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Popular</p>
+                            <p class="font-bold text-lg leading-tight">Chronos Mechanism</p>
+                            <p class="text-xs text-on-surface-variant font-label mt-1">By @MachinaMind</p>
+                        </div>
+                    </div>
+                    <div
+                        class="col-span-12 md:col-span-6 lg:col-span-3 aspect-[3/4] rounded-[2rem] overflow-hidden relative group translate-y-8">
+                        <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                            data-alt="a glowing neon jellyfish creature with long translucent tentacles floating in deep underwater darkness"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvrKq4SZpS_uuHQvuEC2mrZPmz-5FNwMhqKHClnyaaXI4BiK_ePpSXx8wAPV83LTw32U2syHL9qnF-dqR9dg4thi66MTcorMJX9YHrwIJv3GWsdeirJjmAZHNSMb4gELC_E88orKosnqwkn451YlEXZXpG9OBbd0ZOUQApxWidDEfVGguDw4wxEEGYKAX3xm0G5uJIeEa3Z11S_hfOwCmpGOrS34NjmGaMF4yklCZjcdfcI9R9WycSJ_9Qq_uE2doxUdawN4L0znk" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <p class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">New</p>
+                            <p class="font-bold text-lg leading-tight">Biolume Entity</p>
+                            <p class="text-xs text-on-surface-variant font-label mt-1">By @AetherSculpt</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- Footer -->
+        <footer class="border-t border-outline-variant/10 p-8 mt-12 bg-surface-container-low/30">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-on-surface-variant text-sm font-label">
+                    Dimensional Synth © 2024. Experimental Build.
+                </div>
+                <div class="flex gap-8">
+                    <a class="text-xs text-on-surface-variant hover:text-white transition-colors" href="#">Privacy</a>
+                    <a class="text-xs text-on-surface-variant hover:text-white transition-colors" href="#">Terms of
+                        Service</a>
+                    <a class="text-xs text-on-surface-variant hover:text-white transition-colors" href="#">API Docs</a>
+                </div>
+            </div>
+        </footer>
+    </main>
+    <!-- FAB: AI Quick Generate (Contextual) -->
+    <button
+        class="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-gradient-to-br from-primary to-tertiary text-on-primary-fixed shadow-2xl flex items-center justify-center group z-50">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-125 transition-transform"
+            data-icon="auto_awesome">auto_awesome</span>
+        <div
+            class="absolute bottom-full right-0 mb-4 bg-surface-container-highest border border-outline-variant/30 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            Quick AI Sculpt
+        </div>
+    </button>
+</body>
+
+</html>

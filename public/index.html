@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#262528",
+                        "secondary-fixed-dim": "#00deec",
+                        "on-error": "#490013",
+                        "surface-dim": "#0e0e10",
+                        "on-tertiary-fixed-variant": "#6d0061",
+                        "on-secondary-fixed-variant": "#005e64",
+                        "error-dim": "#d73357",
+                        "secondary-container": "#006970",
+                        "tertiary": "#ff59e3",
+                        "surface-container-lowest": "#000000",
+                        "primary-fixed-dim": "#bc6fff",
+                        "surface-tint": "#cf96ff",
+                        "on-background": "#f9f5f8",
+                        "surface-container-high": "#1f1f22",
+                        "secondary-fixed": "#00eefc",
+                        "surface-container": "#19191c",
+                        "surface-variant": "#262528",
+                        "on-error-container": "#ffb2b9",
+                        "background": "#0e0e10",
+                        "on-surface-variant": "#adaaad",
+                        "error": "#ff6e84",
+                        "surface": "#0e0e10",
+                        "on-tertiary": "#42003a",
+                        "on-secondary-fixed": "#003f43",
+                        "secondary": "#00eefc",
+                        "tertiary-dim": "#ff59e3",
+                        "primary-dim": "#a533ff",
+                        "on-secondary-container": "#e3fdff",
+                        "inverse-primary": "#8d00e6",
+                        "secondary-dim": "#00deec",
+                        "on-secondary": "#005359",
+                        "tertiary-fixed-dim": "#ff68e3",
+                        "primary": "#cf96ff",
+                        "on-tertiary-container": "#1b0017",
+                        "outline": "#767577",
+                        "on-primary-container": "#37005f",
+                        "inverse-on-surface": "#565557",
+                        "inverse-surface": "#fcf8fb",
+                        "tertiary-fixed": "#ff85e4",
+                        "outline-variant": "#48474a",
+                        "on-primary-fixed-variant": "#450074",
+                        "on-primary": "#480079",
+                        "primary-container": "#c683ff",
+                        "primary-fixed": "#c683ff",
+                        "error-container": "#a70138",
+                        "surface-bright": "#2c2c2f",
+                        "on-primary-fixed": "#000000",
+                        "tertiary-container": "#ff05e5",
+                        "surface-container-low": "#131315",
+                        "on-tertiary-fixed": "#33002d",
+                        "on-surface": "#f9f5f8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-card {
+            background: rgba(38, 37, 40, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .text-gradient-primary {
+            background: linear-gradient(135deg, #cf96ff 0%, #00eefc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #cf96ff, #a533ff);
+            box-shadow: 0 4px 15px rgba(207, 150, 255, 0.3);
+        }
+
+        .btn-primary-gradient:hover {
+            box-shadow: 0 0 20px rgba(207, 150, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        .editorial-shadow {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 10px rgba(207, 150, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+    <!-- TopNavBar -->
+    <nav
+        class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-8 py-4 max-w-full mx-auto">
+        <div
+            class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 font-headline tracking-tight">
+            Dimensional Synth
+        </div>
+        <div class="hidden md:flex items-center gap-8">
+            <a class="text-purple-400 border-b-2 border-purple-400 pb-1 font-headline text-sm uppercase tracking-wider"
+                href="#">Models</a>
+            <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider"
+                href="#">Engine</a>
+            <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider"
+                href="#">Showcase</a>
+            <a class="text-slate-300 hover:text-white transition-colors font-headline text-sm uppercase tracking-wider"
+                href="#">Pricing</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="text-slate-300 hover:text-white transition-all duration-300 text-sm font-medium">Sign
+                In</button>
+            <button
+                class="bg-primary text-on-primary-fixed px-6 py-2 rounded-full font-semibold hover:opacity-80 transition-all duration-300 active:scale-95">Get
+                Started</button>
+        </div>
+    </nav>
+    <main>
+        <!-- Hero Section -->
+        <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]">
+                </div>
+                <div
+                    class="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[100px]">
+                </div>
+            </div>
+            <div class="container mx-auto px-8 relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <div
+                        class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant bg-surface-container-high/50 text-secondary text-xs font-label tracking-widest uppercase">
+                        The Ethereal Forge is Live
+                    </div>
+                    <h1
+                        class="text-6xl md:text-8xl font-headline font-bold leading-[0.9] tracking-tighter text-on-background">
+                        From <span class="text-gradient-primary">Imagination</span> to 3D Reality
+                    </h1>
+                    <p class="text-xl text-on-surface-variant max-w-md leading-relaxed">
+                        Sculpt high-fidelity assets in the void. Dimensional Synth leverages neural synthesis to
+                        transform words into high-poly geometric masterpieces.
+                    </p>
+                    <div class="flex items-center gap-6">
+                        <button
+                            class="btn-primary-gradient text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold text-lg transition-all">
+                            Start Forging
+                        </button>
+                        <button
+                            class="flex items-center gap-2 text-on-surface hover:text-secondary transition-colors font-label font-medium">
+                            <span class="material-symbols-outlined" data-icon="play_circle">play_circle</span>
+                            Watch Process
+                        </button>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <div
+                        class="absolute -inset-4 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all">
+                    </div>
+                    <div
+                        class="relative glass-card rounded-3xl overflow-hidden editorial-shadow border border-white/5 aspect-square flex items-center justify-center">
+                        <img alt="3D Reality Model"
+                            class="w-full h-full object-cover mix-blend-screen opacity-90 scale-110 group-hover:scale-100 transition-transform duration-1000"
+                            data-alt="Abstract iridescent 3D geometric sculpture floating in a dark digital void with neon purple and cyan highlights"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnZe2YkYUVt02fuWNOdP1XIOg_h4-wWV5wvjjEb_8hfgYEuGy40aSy5LCgZV0RoeILCzhJpUVmHVKpdvEbMXBWNb8u6XMwcYMCfEuxMgsatMKvxq4nujWsfPGX8ZlRc-0-SJz_Qou6hRz6wPmQ888tmAb63-q-mWvMyilyBiDR7mzYkLmy9sjKSZjgRaoKolFP_TesQCDVda4XxK06c2B-Tq8av4JKf7jlWzJEt1ryhi67R6Vsb_zELjaRHmANaUvuy6LHUKtcQQc" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Features Bento Grid -->
+        <section class="py-24 bg-surface-container-low">
+            <div class="container mx-auto px-8">
+                <div class="mb-16 text-center max-w-2xl mx-auto">
+                    <h2 class="text-4xl md:text-5xl font-headline font-bold mb-6">Master the Synthesis</h2>
+                    <p class="text-on-surface-variant text-lg">Harness the most advanced generative engine ever built
+                        for technical 3D workflows.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- Text-to-3D -->
+                    <div
+                        class="md:col-span-7 glass-card rounded-[2rem] p-10 border border-white/5 relative overflow-hidden group">
+                        <div class="relative z-10 h-full flex flex-col justify-between">
+                            <div>
+                                <span class="material-symbols-outlined text-primary text-4xl mb-6"
+                                    data-icon="auto_awesome">auto_awesome</span>
+                                <h3 class="text-3xl font-headline font-bold mb-4">Text-to-3D</h3>
+                                <p class="text-on-surface-variant max-w-sm text-lg">Sculpt complex models with natural
+                                    language. Describe textures, geometry, and lighting, then watch the synth
+                                    materialize your thoughts.</p>
+                            </div>
+                            <div class="mt-12 flex flex-wrap gap-2">
+                                <span
+                                    class="px-4 py-1.5 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-label">Neural
+                                    Engine v4.2</span>
+                                <span
+                                    class="px-4 py-1.5 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-label">PBR
+                                    Mapping</span>
+                            </div>
+                        </div>
+                        <div
+                            class="absolute top-0 right-0 w-1/2 h-full opacity-20 group-hover:opacity-40 transition-opacity">
+                            <img class="w-full h-full object-cover object-right"
+                                data-alt="Flowing organic purple liquid abstract shapes rendered in 3D with realistic glossy reflections"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH60C57gdU2Ybhzht70-jbkub9R82cNoyxCdYwqRL1D3iSBodFh8ycObNcBUQMrG_iqeG_TLmMONlgt-XBipiKVyFfOgkwomrlvMV1quZJ-0nK_m17ZQKmgidzE6DdL2BmZWEc1FJMwtqvlQM-Uf_0OTF3RxUjCLf4oKhHFWLMtZYVpzS7I0ckzqpWqTP6ULj6XsMOMBj0hS5mYfWwCfv-no8zNvJeCtxS278f44u5-pzeCp4mqveeThHhjEtaYaDCg_L1_cOAPAI" />
+                        </div>
+                    </div>
+                    <!-- Real-time Rendering -->
+                    <div
+                        class="md:col-span-5 bg-surface-container-high rounded-[2rem] p-10 border border-outline-variant/10 flex flex-col justify-between group">
+                        <div>
+                            <span class="material-symbols-outlined text-secondary text-4xl mb-6"
+                                data-icon="speed">speed</span>
+                            <h3 class="text-3xl font-headline font-bold mb-4">Real-time Rendering</h3>
+                            <p class="text-on-surface-variant text-lg">Preview your creations instantly in the Ethereal
+                                Forge. No more waiting for bakes.</p>
+                        </div>
+                        <div class="mt-8 bg-surface-dim rounded-2xl p-4 border border-outline-variant/20">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-label text-secondary">VIEWPORT_ACTIVE</span>
+                                <span class="text-xs font-label text-on-surface-variant">FPS: 120</span>
+                            </div>
+                            <div
+                                class="h-32 bg-gradient-to-br from-surface-container-highest to-background rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-outline animate-pulse"
+                                    data-icon="view_in_ar">view_in_ar</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Image-to-3D -->
+                    <div
+                        class="md:col-span-12 glass-card rounded-[2rem] p-10 border border-white/5 relative overflow-hidden group">
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <span class="material-symbols-outlined text-tertiary text-4xl mb-6"
+                                    data-icon="photo_camera">photo_camera</span>
+                                <h3 class="text-4xl font-headline font-bold mb-4">Image-to-3D</h3>
+                                <p class="text-on-surface-variant text-xl leading-relaxed">Turn any 2D reference into a
+                                    usable 3D asset. Upload sketches or photos and the synth generates fully rigged
+                                    geometry with matched UV coordinates.</p>
+                                <button
+                                    class="mt-8 px-8 py-3 rounded-full border border-tertiary text-tertiary font-bold hover:bg-tertiary hover:text-on-tertiary transition-all">
+                                    Upload Reference
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <div class="aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                                    <img class="w-full h-full object-cover"
+                                        data-alt="Cinematic 3D render of a futuristic cybernetic character bust with glowing internal fiber optics"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5F9zhhaPN3JrrUQsf5_5bcvhZMd9sHogs1HLR7dSS8bS-bfs6hfbzwwTWxIlxlkizPiYq-EMq_At5L3pza7pVTrB6PQ52fohm4mLopKmMxmgvhdjiRKWNaA-i2Syz2ifsYlXgDLXocGrNJxxcIpsOqyV-FAkhW9AOcAgxfV-ge1XSszh7oLF-HKIt6pjKkX1v3r5y9qc_MXe62WkUC-sdSXDrvtK-vLBuxLEI0fMvkCHODNrnYNhzDsLDOhHQEvG3bH-VzXzxx4A" />
+                                </div>
+                                <div
+                                    class="absolute -bottom-4 -left-4 bg-surface-container-highest p-4 rounded-xl border border-white/10 editorial-shadow">
+                                    <div class="text-[10px] font-label text-tertiary mb-1">RECONSTRUCTION PROGRESS</div>
+                                    <div class="w-32 h-1 bg-surface-variant rounded-full overflow-hidden">
+                                        <div class="h-full bg-tertiary w-3/4"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Showcase Grid -->
+        <section class="py-24 overflow-hidden">
+            <div class="container mx-auto px-8">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+                    <div class="max-w-xl">
+                        <h2 class="text-5xl font-headline font-bold mb-4">Forged in the Cloud</h2>
+                        <p class="text-on-surface-variant text-lg">A selection of recent artifacts synthesized by the
+                            Dimensional community.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center hover:bg-white/5 transition-colors">
+                            <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+                        </button>
+                        <button
+                            class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center hover:bg-white/5 transition-colors">
+                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="space-y-6">
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                data-alt="High detail 3D model of a complex mechanical engine part with copper and chrome materials"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT_jzC9q3xCxjZ9IPA92ebdULnyO0Hcqa5jrKA9IvvUiD4qPEffMsOye3JBG9vbnJxE03XxCdHv0fygWjYcABqLH2EpJ_bAscCLRI-5lmlg8ahum-F5oGO4iYDekkbIVjeeZrOS-3pHyLS9ISGz8uYHzQWCopWzKaTG5jVJOULnGwflbybTVhfTp3x_Jq7r8KbBuuzBnT4UmiVljeQ9e2PT_0L1L_kjSAUJ4i3WB3N372Z7VRq9BH6ZYDUj51uQzdgTGeQCbXxJ1k" />
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-xs font-label text-secondary mb-1">MECH_CORE</span>
+                                <p class="text-white font-headline font-bold">Industrial Turbine</p>
+                            </div>
+                        </div>
+                        <div
+                            class="aspect-square rounded-[2rem] bg-surface-container-high border border-white/5 p-8 flex flex-col justify-center items-center text-center">
+                            <h4 class="text-4xl font-headline font-bold text-gradient-primary">12k+</h4>
+                            <p class="text-xs text-on-surface-variant font-label tracking-widest mt-2">MODELS FORGED
+                                TODAY</p>
+                        </div>
+                    </div>
+                    <div class="space-y-6 pt-12">
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                data-alt="Digital art of an alien planet landscape with bioluminescent flora and floating mountain structures"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMxO4gCkWeYin59jtl3inqyviba6HyDp8Qy6ql_5LWTmoSP2RRpWIsTaxJTDQ8nDBzysSLtmfMrqw3frW1FmQshM5VCJZfRl8q5yYmtc7kAps8L9RlxquGuiOOg3I3Gzo_fDKRHtCrX92Xz91Ga51jC87wgv-yU_CxWnXj_lPQw_IDPvTXG-1NF3Dj0UYWf9QSswxP1vsGvDshis-cVny5Dbyf6MPiC4PHw5-BueWvHvzr34b6LyJVg9-rlyQVyH71umXKPO8qWiE" />
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-xs font-label text-primary mb-1">ETHEREAL_FLORA</span>
+                                <p class="text-white font-headline font-bold">Biolume Shrub</p>
+                            </div>
+                        </div>
+                        <div class="aspect-[3/4] rounded-[2rem] overflow-hidden relative group">
+                            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                data-alt="Hyper-realistic 3D character bust of a fantasy warrior with ornate obsidian armor"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8DV8mBXYTAWCHlBkv-cFzM45JQQ-_ClFJjrAXwnoJjvyEYjQoIXbDseE4514H4cUnrPcuTaZIdIcLdEHk4mIZFS9goovGmMkIunznV07bakIQe30cAeqVKfHd86PRyry6LM-yWMTA0bBVqgkcx4vywM-v8Ij4eDojiJMYjJT7VVu1-C7Y3TP_HTLwj9PagnaG3Xfu4EwpWkZypJGb4Bj1dKlo3mtKH9tsDg36XHJ6mLZtdpvbPIJ3xgS4WBbrvs9cDGbXnVrhEVo" />
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-xs font-label text-tertiary mb-1">AVATAR_SYS</span>
+                                <p class="text-white font-headline font-bold">Obsidian Knight</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="aspect-square rounded-[2rem] overflow-hidden relative group">
+                            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                data-alt="Minimalist abstract 3D ribbons of white and gold silk floating in a clean dark space"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcg0FiVYr_nwvGhnesN0B4YBSGR4qTSvOk5NaQwgqhVDtdhlYSs-6UTlF_379gTgH_Np132teAcMiO8kfzzO2TBaJpQTEd_UJjYpHLRiJsD-o3vGAX1qSRHXgkzynQRHaFHi5Cj7avrGjt88hEf6q-fns94QpReRjQFym4d7HhiPtBX03lNsgxbPtplXgQw2OR_BZ4fzJEIkpuXiC53lYMrk5Y8fqB93yyPUxrQ-MOf1BErHYayzhiT8w3AbfFX1J9Ofm-ThbKV30" />
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-xs font-label text-secondary mb-1">SILK_SIM</span>
+                                <p class="text-white font-headline font-bold">Kinetic Ribbons</p>
+                            </div>
+                        </div>
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                data-alt="3D render of a futuristic isometric room with glowing neon accents and high-tech furniture"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmNwRdyBuaHVPfkrPGb_v-DI6CHkJyhA9wfviSpc7XTSDmhQxOSpfB4Dk_CllPzZdBeOlLo0tA1gx9zT7aEEV6SNy0cvpwyPE6gvubSyJiNja1se8q1x9XL2qsiESdVsJx1gbm_hhGPOUnjwQKnvO8n_kT__iXjLH-yXVkjN_449xcy7ZBpPYh3HZbJLesxh8lFD5Ib10-O9h8qJbKTiLjSxEaO104Rfu7gm6OCWcq7y85t1Olq6cpn-jvTNwyT1ZmJvkYdtExScI" />
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-xs font-label text-primary mb-1">ARCH_VIS</span>
+                                <p class="text-white font-headline font-bold">Neon Habitation</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6 pt-12">
+                        <div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden relative group">
+                            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                data-alt="Close up of a stylized 3D model of a crystal formation with internal glowing fractures"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcnalY483x99ln_Pt19zkXtzBFNIG8GCetQ9xVC_QvNRX80jw51IQM5jKzHpU1xXP6Nolrq332pGvXFLEyPcJ0t6ppSxkunIWkCAIctN_0QRG5scrhB229wbxqL1J37cO1-9QmJCv92OG-GDPBEA7TParhTTuHINKv1SZSEvGpbDm33S5YSpNc_y45TXXcXXHqwOl6qImYHu0aJUTSdTsfgChAPTaeWxN4ULC0gaBJpdixWT2iaiXMiaI10X00Esf7H6Ml1UeiDbY" />
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-xs font-label text-secondary mb-1">CRYSTAL_GEOM</span>
+                                <p class="text-white font-headline font-bold">Aether Crystal</p>
+                            </div>
+                        </div>
+                        <div
+                            class="aspect-square rounded-[2rem] bg-surface-container-high border border-white/5 p-8 flex flex-col justify-center items-center text-center">
+                            <p class="text-on-surface-variant font-label text-sm uppercase mb-4">Ready to Build?</p>
+                            <button class="material-symbols-outlined text-4xl text-primary"
+                                data-icon="add_circle">add_circle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Final CTA -->
+        <section class="py-32 relative">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent"></div>
+            </div>
+            <div class="container mx-auto px-8 relative z-10 text-center">
+                <div class="max-w-4xl mx-auto glass-card rounded-[3rem] p-16 border border-white/10 editorial-shadow">
+                    <h2 class="text-5xl md:text-7xl font-headline font-bold mb-8">Ready to Forge the Infinite?</h2>
+                    <p class="text-xl text-on-surface-variant mb-12 max-w-2xl mx-auto">Join the new era of 3D creation.
+                        No technical barriers. Just pure creative synthesis.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            class="btn-primary-gradient text-on-primary-fixed px-12 py-5 rounded-full font-headline font-bold text-xl transition-all">
+                            Get Started
+                        </button>
+                        <button
+                            class="px-12 py-5 rounded-full border border-outline-variant font-headline font-bold text-xl hover:bg-white/5 transition-all">
+                            Contact Sales
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer
+        class="bg-[#0e0e10] w-full py-12 px-8 border-t border-white/5 tonal-shift-bg-surface-container-low flat no shadows">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            <div class="col-span-2 md:col-span-1">
+                <div class="text-lg font-bold text-white font-headline mb-6">Dimensional Synth</div>
+                <p class="font-['Inter'] text-sm text-slate-400 mb-6 max-w-xs">The Ethereal Forge. Transforming human
+                    intent into three-dimensional reality through neural synthesis.</p>
+                <div class="flex gap-4">
+                    <a class="text-slate-500 hover:text-purple-400 transition-colors" href="#">
+                        <span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+                    </a>
+                    <a class="text-slate-500 hover:text-purple-400 transition-colors" href="#">
+                        <span class="material-symbols-outlined" data-icon="hub">hub</span>
+                    </a>
+                    <a class="text-slate-500 hover:text-purple-400 transition-colors" href="#">
+                        <span class="material-symbols-outlined" data-icon="language">language</span>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-white font-medium mb-6 font-headline">Platform</h4>
+                <ul class="space-y-4">
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Documentation</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">API Reference</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Models</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Integration</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-medium mb-6 font-headline">Company</h4>
+                <ul class="space-y-4">
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Terms of Service</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Privacy Policy</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Careers</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Blog</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-medium mb-6 font-headline">Connect</h4>
+                <ul class="space-y-4">
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Twitter</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">Discord</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">GitHub</a></li>
+                    <li><a class="font-['Inter'] text-sm text-slate-500 hover:text-cyan-400 transition-colors"
+                            href="#">YouTube</a></li>
+                </ul>
+            </div>
+        </div>
+        <div
+            class="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="font-['Inter'] text-sm text-slate-400">© 2024 Dimensional Synth. All rights reserved. Built for
+                the Ethereal Forge.</p>
+            <div class="flex gap-6">
+                <span class="text-[10px] font-label text-outline uppercase tracking-[0.2em]">Version 2.0.4-Delta</span>
+                <span class="text-[10px] font-label text-secondary uppercase tracking-[0.2em]">System Status:
+                    Nominal</span>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
