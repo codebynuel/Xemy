@@ -5,18 +5,22 @@ import requests
 from io import BytesIO
 from PIL import Image
 
-# Import TRELLIS specific libraries
-from trellis.pipelines import TrellisImageTo3DPipeline
-from trellis.utils import postprocessing_utils
+# Import TripoSR
+import sys
+sys.path.insert(0, "/app/TripoSR")
+from tsr.system import TSR
 
 # ---------------------------------------------------------
 # Load models ONCE when the container starts up.
 # ---------------------------------------------------------
-print("Loading Microsoft TRELLIS into VRAM...")
-# This automatically grabs the weights we cached in the Dockerfile
-pipeline = TrellisImageTo3DPipeline.from_pretrained("JeffreyXiang/TRELLIS-image-large")
-pipeline.cuda() # Move the model to the GPU
-print("TRELLIS loaded and ready!")
+print("Loading TripoSR into VRAM...")
+model = TSR.from_pretrained(
+    "stabilityai/TripoSR",
+    config_name="config.yaml",
+    weight_name="model.ckpt",
+)
+model.to("cuda")
+print("TripoSR loaded and ready!")
 
 def generate_3d(job):
     """
@@ -24,7 +28,7 @@ def generate_3d(job):
     """
     job_input = job['input']
     
-    # We now expect an image URL instead of a text prompt
+    # We expect an image URL
     image_url = job_input.get('image_url')
     
     if not image_url:
@@ -40,29 +44,23 @@ def generate_3d(job):
         
         print("Image downloaded. Running 3D synthesis...")
         
-        # 2. Run the TRELLIS AI generation
-        # Seed 1 ensures consistent results. You can randomize this if you want variations.
-        outputs = pipeline.run(image, seed=1)
+        # 2. Run TripoSR inference
+        with torch.no_grad():
+            scene_codes = model([image], device="cuda")
         
-        # 3. Post-process the output into a textured 3D Mesh
-        # simplify=0.95 reduces the poly count slightly so it loads faster in the browser
-        # texture_size=1024 gives us Meshy-level texture quality
-        glb_mesh = postprocessing_utils.to_glb(
-            outputs['gaussian'][0],
-            outputs['mesh'][0],
-            simplify=0.95,
-            texture_size=1024 
-        )
+        # 3. Extract the mesh and export as GLB
+        meshes = model.extract_mesh(scene_codes, resolution=256)
+        mesh = meshes[0]
         
-        # 4. Save to a temporary file
+        # 4. Save to a temporary GLB file
         temp_path = "/tmp/output.glb"
-        glb_mesh.export(temp_path)
+        mesh.export(temp_path)
         
-        # 5. Encode the GLB to base64 to send back to Express via Webhook
+        # 5. Encode the GLB to base64 to send back to Express
         with open(temp_path, "rb") as f:
             obj_base64 = base64.b64encode(f.read()).decode('utf-8')
         
-        print("Generation complete! Sending to Webhook...")
+        print("Generation complete! Sending result...")
         
         return {
             "status": "success", 

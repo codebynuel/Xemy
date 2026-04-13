@@ -26,8 +26,6 @@ jobs:
         with:
           context: .
           push: true
-          # This tags your image as 'yourusername/shap-e-worker:latest'
-          tags: ${{ secrets.DOCKER_USERNAME }}/shap-e-worker:latest
-          # Helps speed up future builds
+          tags: ${{ secrets.DOCKER_USERNAME }}/triposr-worker:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

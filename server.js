@@ -10,6 +10,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const cookieParser = require('cookie-parser');
+const multer = require('multer');
 
 const app = express();
 // Upgrade Express to an HTTP server to support WebSockets
@@ -31,7 +32,29 @@ const THUMB_DIR = path.join(__dirname, 'temp_models', '_thumbnails');
 if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR, { recursive: true });
 app.use('/thumbnails', express.static(THUMB_DIR));
 
-const PUBLIC_URL = process.env.WEBHOOK_PUBLIC_URL;
+// Upload storage for reference images
+const UPLOAD_DIR = path.join(__dirname, 'temp_models', '_uploads');
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOAD_DIR));
+
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+        filename: (req, file, cb) => {
+            const ext = path.extname(file.originalname).toLowerCase();
+            const allowed = ['.png', '.jpg', '.jpeg', '.webp'];
+            if (!allowed.includes(ext)) return cb(new Error('Invalid file type'));
+            cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+        }
+    }),
+    limits: { fileSize: 20 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Only images are allowed'));
+    }
+});
+
+const PUBLIC_URL = process.env.PUBLIC_URL;
 if (!PUBLIC_URL) console.warn('⚠️  WEBHOOK_PUBLIC_URL is not set — webhooks and model URLs will be broken!');
 
 // ---------------------------------------------------------
@@ -49,15 +72,17 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 const generationSchema = new mongoose.Schema({
-    userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    sessionId: { type: String, required: true },
-    prompt:    { type: String, required: true },
-    name:      { type: String, default: '' },
-    modelPath: { type: String },
-    modelUrl:  { type: String },
-    thumbnail: { type: String, default: '' },
-    status:    { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
-    createdAt: { type: Date, default: Date.now }
+    userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    sessionId:      { type: String, required: true },
+    mode:           { type: String, enum: ['text', 'image'], default: 'text' },
+    prompt:         { type: String, default: '' },
+    name:           { type: String, default: '' },
+    referenceImage: { type: String, default: '' },
+    modelPath:      { type: String },
+    modelUrl:       { type: String },
+    thumbnail:      { type: String, default: '' },
+    status:         { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+    createdAt:      { type: Date, default: Date.now }
 });
 generationSchema.index({ userId: 1, createdAt: -1 });
 const Generation = mongoose.model('Generation', generationSchema);
@@ -148,88 +173,103 @@ io.on('connection', (socket) => {
 });
 
 // ---------------------------------------------------------
-// SERVER-SIDE THUMBNAIL GENERATION
+// Generate image from text using fal.ai FLUX
 // ---------------------------------------------------------
-function generateThumbnail(objText, generationId) {
-    try {
-        // Parse OBJ vertices and project to 2D isometric view
-        const vertices = [];
-        const lines = objText.split('\n');
-        for (const line of lines) {
-            if (line.startsWith('v ')) {
-                const parts = line.trim().split(/\s+/);
-                if (parts.length >= 4) {
-                    vertices.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
-                }
-            }
-        }
+async function generateImageFromText(prompt) {
+    const FAL_KEY = process.env.FAL_KEY;
+    if (!FAL_KEY) throw new Error('FAL_KEY not configured');
 
-        if (vertices.length === 0) return '';
+    // Submit to fal.ai queue
+    const submitRes = await fetch('https://queue.fal.run/fal-ai/flux/dev', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Key ${FAL_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            prompt,
+            image_size: 'square_hd',
+            num_images: 1
+        })
+    });
+    const submitData = await submitRes.json();
 
-        // Compute bounding box
-        let minX = Infinity, minY = Infinity, minZ = Infinity;
-        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-        for (const [x, y, z] of vertices) {
-            if (x < minX) minX = x; if (x > maxX) maxX = x;
-            if (y < minY) minY = y; if (y > maxY) maxY = y;
-            if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
-        }
+    // If already complete (sync response)
+    if (submitData.images?.[0]?.url) {
+        return submitData.images[0].url;
+    }
 
-        // Center and normalize
-        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2, cz = (minZ + maxZ) / 2;
-        const span = Math.max(maxX - minX, maxY - minY, maxZ - minZ) || 1;
+    // Otherwise poll status_url
+    const statusUrl = submitData.status_url;
+    const responseUrl = submitData.response_url;
+    if (!statusUrl || !responseUrl) throw new Error('fal.ai did not return queue URLs');
 
-        // Isometric projection (30-degree rotation)
-        const cos30 = Math.cos(Math.PI / 6);
-        const sin30 = 0.5;
-        const size = 200;
-        const padding = 20;
-        const scale = (size - padding * 2) / 2;
-
-        // Project vertices to 2D
-        const projected = vertices.map(([x, y, z]) => {
-            const nx = (x - cx) / span;
-            const ny = (y - cy) / span;
-            const nz = (z - cz) / span;
-            const px = (nx - nz) * cos30;
-            const py = -ny + (nx + nz) * sin30;
-            return [size / 2 + px * scale, size / 2 + py * scale];
+    // Poll until ready
+    for (let i = 0; i < 60; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        const pollRes = await fetch(statusUrl, {
+            headers: { 'Authorization': `Key ${FAL_KEY}` }
         });
+        const pollData = await pollRes.json();
+        if (pollData.status === 'COMPLETED') break;
+        if (pollData.status === 'FAILED') throw new Error('FLUX image generation failed');
+    }
 
-        // Sample a subset of points for the SVG (max 2000 for performance)
-        const step = Math.max(1, Math.floor(projected.length / 2000));
-        let dots = '';
-        for (let i = 0; i < projected.length; i += step) {
-            const [px, py] = projected[i];
-            dots += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="0.8" fill="#b8f147" opacity="0.7"/>`;
-        }
+    // Get result
+    const resultRes = await fetch(responseUrl, {
+        headers: { 'Authorization': `Key ${FAL_KEY}` }
+    });
+    const resultData = await resultRes.json();
+    const imageUrl = resultData.images?.[0]?.url;
+    if (!imageUrl) throw new Error('FLUX returned no image');
+    return imageUrl;
+}
 
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-<rect width="${size}" height="${size}" fill="#19191c" rx="12"/>
-${dots}
-</svg>`;
-
-        const thumbFileName = `${generationId}.svg`;
+// Save a remote image locally for use as thumbnail
+async function downloadImageAsThumb(imageUrl, generationId) {
+    try {
+        const res = await fetch(imageUrl);
+        if (!res.ok) return '';
+        const buffer = Buffer.from(await res.arrayBuffer());
+        const ext = imageUrl.includes('.png') ? '.png' : '.jpg';
+        const thumbFileName = `${generationId}${ext}`;
         const thumbPath = path.join(THUMB_DIR, thumbFileName);
-        fs.writeFileSync(thumbPath, svg);
+        fs.writeFileSync(thumbPath, buffer);
         return `/thumbnails/${thumbFileName}`;
     } catch (err) {
-        console.error('Thumbnail generation failed:', err);
+        console.error('Thumbnail download failed:', err);
         return '';
     }
 }
 
 // ---------------------------------------------------------
-// ROUTE 1: Trigger the GPU and poll for completion
+// ROUTE: Upload reference image
+// ---------------------------------------------------------
+app.post('/api/upload-image', async (req, res) => {
+    const user = await authenticateRequest(req);
+    if (!user) return res.status(401).json({ error: 'Not authenticated' });
+
+    upload.single('image')(req, res, (err) => {
+        if (err) return res.status(400).json({ error: err.message });
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+        const imageUrl = `${PUBLIC_URL}/uploads/${req.file.filename}`;
+        res.json({ imageUrl });
+    });
+});
+
+// ---------------------------------------------------------
+// ROUTE: Trigger the GPU and poll for completion
 // ---------------------------------------------------------
 app.post('/api/generate', async (req, res) => {
-    const { prompt, sessionId, name, guidanceScale, steps } = req.body;
-    if (!prompt || !sessionId) return res.status(400).json({ error: "Missing data" });
+    const { mode, prompt, imageUrl, sessionId, name } = req.body;
+    if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
+    if (mode === 'text' && !prompt) return res.status(400).json({ error: 'Missing prompt' });
+    if (mode === 'image' && !imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
 
     const user = await authenticateRequest(req);
     if (!user) return res.status(401).json({ error: 'Not authenticated' });
 
-    // Sanitize sessionId up-front to prevent path traversal
+    // Sanitize sessionId to prevent path traversal
     const safeSessionId = path.basename(sessionId);
     if (!safeSessionId || safeSessionId !== sessionId) {
         return res.status(400).json({ error: 'Invalid session ID' });
@@ -244,8 +284,10 @@ app.post('/api/generate', async (req, res) => {
         generation = await Generation.create({
             userId: user._id,
             sessionId: safeSessionId,
-            prompt,
+            mode: mode || 'text',
+            prompt: prompt || '',
             name: name || '',
+            referenceImage: imageUrl || '',
             status: 'pending'
         });
     } catch (dbErr) {
@@ -254,13 +296,29 @@ app.post('/api/generate', async (req, res) => {
     }
 
     try {
+        let referenceImageUrl = imageUrl;
+
+        // Text mode: generate reference image via fal.ai FLUX first
+        if (mode === 'text') {
+            io.to(safeSessionId).emit('generation_status', { status: 'GENERATING_IMAGE' });
+            console.log(`   FLUX: generating reference image for "${prompt.slice(0, 50)}"`);
+            referenceImageUrl = await generateImageFromText(prompt);
+
+            // Save FLUX image as thumbnail and update record
+            const thumbnailUrl = await downloadImageAsThumb(referenceImageUrl, generation._id.toString());
+            await Generation.findByIdAndUpdate(generation._id, { referenceImage: referenceImageUrl, thumbnail: thumbnailUrl });
+        }
+
+        // Submit to RunPod TRELLIS with image_url
+        io.to(safeSessionId).emit('generation_status', { status: 'IN_QUEUE' });
+
         const runRes = await fetch(`https://api.runpod.ai/v2/${ENDPOINT_ID}/run`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${RUNPOD_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ input: { prompt, guidance_scale: guidanceScale, num_steps: steps } })
+            body: JSON.stringify({ input: { image_url: referenceImageUrl } })
         });
 
         const runData = await runRes.json();
@@ -291,8 +349,8 @@ app.post('/api/generate', async (req, res) => {
                     pollDone = true;
                     clearInterval(poll);
 
-                    const objB64 = statusData.output?.model_data;
-                    if (!objB64) {
+                    const glbB64 = statusData.output?.model_data;
+                    if (!glbB64) {
                         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
                         io.to(safeSessionId).emit('generation_failed', { error: 'Generation completed but model data was empty' });
                         return;
@@ -301,15 +359,18 @@ app.post('/api/generate', async (req, res) => {
                     const userDir = path.join(TEMP_DIR, safeSessionId);
                     if (!fs.existsSync(userDir)) fs.mkdirSync(userDir);
 
-                    const fileName = `${jobId}.obj`;
+                    const fileName = `${jobId}.glb`;
                     const filePath = path.join(userDir, fileName);
-                    const objBuffer = Buffer.from(objB64, 'base64');
-                    fs.writeFileSync(filePath, objBuffer);
+                    const glbBuffer = Buffer.from(glbB64, 'base64');
+                    fs.writeFileSync(filePath, glbBuffer);
 
-                    const modelUrl = `${PUBLIC_URL}/models/${safeSessionId}/${fileName}`;
+                    const modelUrl = `${process.env.LOCAL_URL}/models/${safeSessionId}/${fileName}`;
 
-                    // Generate thumbnail server-side
-                    const thumbnailUrl = generateThumbnail(objBuffer.toString('utf8'), generation._id.toString());
+                    // For image mode, use the uploaded reference image as thumbnail
+                    let thumbnailUrl = (await Generation.findById(generation._id))?.thumbnail || '';
+                    if (!thumbnailUrl && referenceImageUrl) {
+                        thumbnailUrl = await downloadImageAsThumb(referenceImageUrl, generation._id.toString());
+                    }
 
                     await Generation.findByIdAndUpdate(generation._id, {
                         status: 'completed',
@@ -321,7 +382,7 @@ app.post('/api/generate', async (req, res) => {
                     io.to(safeSessionId).emit('generation_complete', {
                         modelUrl,
                         generationId: generation._id,
-                        prompt,
+                        prompt: prompt || '',
                         name: name || '',
                         thumbnail: thumbnailUrl
                     });
@@ -338,8 +399,10 @@ app.post('/api/generate', async (req, res) => {
         }, 5000);
 
     } catch (error) {
+        console.error('Generation error:', error);
         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-        res.status(500).json({ error: "Failed to start GPU generation" });
+        io.to(safeSessionId).emit('generation_failed', { error: error.message || 'Failed to start generation' });
+        if (!res.headersSent) res.status(500).json({ error: 'Failed to start generation' });
     }
 });
 
@@ -385,14 +448,14 @@ app.delete('/api/generations/:id', async (req, res) => {
         const gen = await Generation.findOne({ _id: req.params.id, userId: user._id });
         if (!gen) return res.status(404).json({ error: 'Generation not found' });
 
-        // Remove OBJ file from disk
+        // Remove GLB file from disk
         if (gen.modelPath && fs.existsSync(gen.modelPath)) {
             fs.unlinkSync(gen.modelPath);
         }
-        // Remove thumbnail
-        const thumbPath = path.join(THUMB_DIR, `${gen._id}.svg`);
-        if (fs.existsSync(thumbPath)) {
-            fs.unlinkSync(thumbPath);
+        // Remove thumbnail (try common extensions)
+        for (const ext of ['.jpg', '.png', '.svg']) {
+            const thumbPath = path.join(THUMB_DIR, `${gen._id}${ext}`);
+            if (fs.existsSync(thumbPath)) { fs.unlinkSync(thumbPath); break; }
         }
 
         await Generation.deleteOne({ _id: gen._id });

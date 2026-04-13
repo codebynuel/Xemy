@@ -1,5 +1,5 @@
 ﻿import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // --- App State ---
@@ -10,9 +10,6 @@ let currentModelUrl = null;
 let currentGenerationId = null;
 let isWireframe = false;
 let generations = [];
-let selectedQuality = 'balanced';
-
-const stepsMap = { fast: 32, balanced: 64, quality: 128 };
 
 // --- Boot ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -20,7 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initSocketio();
     initViewport();
     bindForgeButton();
-    bindQualityToggles();
     bindViewportControls();
     bindExportButton();
     bindLogout();
@@ -60,8 +56,9 @@ function initSocketio() {
 
     socket.on('generation_status', ({ status }) => {
         const messages = {
-            IN_QUEUE:    'In queue \u2014 waiting for GPU...',
-            IN_PROGRESS: 'Generating model...',
+            GENERATING_IMAGE: 'Generating reference image via FLUX...',
+            IN_QUEUE:    'In queue — waiting for GPU...',
+            IN_PROGRESS: 'Generating 3D model...',
         };
         setStatus('busy', messages[status] || `Status: ${status}`);
     });
@@ -150,31 +147,29 @@ function initViewport() {
 
 function loadModel(url, onComplete) {
     showViewportLoader(true);
-    const loader = new OBJLoader();
+    const loader = new GLTFLoader();
     loader.load(
         url,
-        (obj) => {
+        (gltf) => {
             if (currentModel) scene.remove(currentModel);
 
-            const box = new THREE.Box3().setFromObject(obj);
+            const model = gltf.scene;
+            const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            obj.position.sub(center);
-            if (maxDim > 0) obj.scale.multiplyScalar(2.5 / maxDim);
+            model.position.sub(center);
+            if (maxDim > 0) model.scale.multiplyScalar(2.5 / maxDim);
 
-            const mat = new THREE.MeshStandardMaterial({
-                color: 0xd4d4d4,
-                metalness: 0.15,
-                roughness: 0.55,
-                envMapIntensity: 0.5,
-            });
-            obj.traverse(child => {
-                if (child.isMesh) child.material = mat;
+            // Store original materials for wireframe toggle restore
+            model.traverse(child => {
+                if (child.isMesh) {
+                    child.userData.originalMaterial = child.material;
+                }
             });
 
-            scene.add(obj);
-            currentModel = obj;
+            scene.add(model);
+            currentModel = model;
             isWireframe = false;
 
             updateModelStats();
@@ -310,24 +305,48 @@ function bindImageUpload() {
         reader.readAsDataURL(file);
     }
 
-    imgForgeBtn?.addEventListener('click', () => {
+    imgForgeBtn?.addEventListener('click', async () => {
         if (!selectedImageFile) {
             setStatus('error', 'Please upload a reference image first');
             return;
         }
-        // Image-to-3D is a UI placeholder — backend not implemented yet
-        setStatus('error', 'Image to 3D coming soon!');
-    });
-}
 
-// --- Quality Toggles ---
-function bindQualityToggles() {
-    document.querySelectorAll('.quality-option').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.quality-option').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedQuality = btn.dataset.quality;
-        });
+        setForgeState('loading');
+        setStatus('busy', 'Uploading image...');
+
+        try {
+            // Upload the image to the server
+            const formData = new FormData();
+            formData.append('image', selectedImageFile);
+
+            const uploadRes = await fetch('/api/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+            if (!uploadRes.ok) {
+                const err = await uploadRes.json().catch(() => ({}));
+                throw new Error(err.error || 'Upload failed');
+            }
+            const { imageUrl } = await uploadRes.json();
+
+            const imgName = document.getElementById('img-gen-name')?.value.trim() || '';
+
+            // Trigger generation with mode: 'image'
+            const res = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'image', imageUrl, name: imgName, sessionId }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'Request failed');
+            }
+            const data = await res.json();
+            setStatus('busy', `Forging — Job ${(data.jobId || '').slice(0, 8) || '...'}`);
+        } catch (err) {
+            setStatus('error', err.message);
+            setForgeState('idle');
+        }
     });
 }
 
@@ -347,7 +366,6 @@ async function forge() {
     }
 
     const name = document.getElementById('gen-name')?.value.trim() || '';
-    const steps = stepsMap[selectedQuality] ?? 64;
 
     setForgeState('loading');
     setStatus('busy', 'Submitting to forge...');
@@ -356,7 +374,7 @@ async function forge() {
         const res = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, name, sessionId, steps }),
+            body: JSON.stringify({ mode: 'text', prompt, name, sessionId }),
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
@@ -379,7 +397,7 @@ function bindExportButton() {
         }
         const a = document.createElement('a');
         a.href = currentModelUrl;
-        a.download = 'xemy_model.obj';
+        a.download = 'xemy_model.glb';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -414,7 +432,7 @@ function bindViewportControls() {
                 if (isWireframe) {
                     child.material = new THREE.MeshBasicMaterial({ color: 0xb8f147, wireframe: true });
                 } else {
-                    child.material = new THREE.MeshStandardMaterial({ color: 0xd4d4d4, metalness: 0.15, roughness: 0.55 });
+                    child.material = child.userData.originalMaterial || new THREE.MeshStandardMaterial({ color: 0xd4d4d4, metalness: 0.15, roughness: 0.55 });
                 }
             }
         });
@@ -422,15 +440,15 @@ function bindViewportControls() {
 
     document.getElementById('ctrl-material').addEventListener('click', () => {
         if (!currentModel) return;
-        // Cycle through material colors
+        if (isWireframe) return; // don't cycle colors while in wireframe
         const colors = [0xb8f147, 0xcf96ff, 0x00eefc, 0xff59e3, 0xffffff, 0xff6e84];
         const current = currentModel.userData.colorIndex || 0;
         const next = (current + 1) % colors.length;
         currentModel.userData.colorIndex = next;
         currentModel.traverse(child => {
-            if (child.isMesh) {
-                child.material.color.setHex(colors[next]);
-                child.material.needsUpdate = true;
+            if (child.isMesh && child.material) {
+                // Override material with solid color (loses texture)
+                child.material = new THREE.MeshStandardMaterial({ color: colors[next], metalness: 0.15, roughness: 0.55 });
             }
         });
     });

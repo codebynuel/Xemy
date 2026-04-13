@@ -56,7 +56,7 @@
     {
         "imports": {
             "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
-            "three/examples/jsm/loaders/OBJLoader.js": "https://unpkg.com/three@0.165.0/examples/jsm/loaders/OBJLoader.js",
+            "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.165.0/examples/jsm/loaders/GLTFLoader.js",
             "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js"
         }
     }
@@ -179,27 +179,14 @@
                             class="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 transition-all"
                             placeholder="Give your generation a name" />
                     </div>
-                    <div>
-                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-2 block">Quality</label>
-                        <div class="flex gap-1 bg-surface-container-high rounded-xl p-1 border border-outline-variant/15">
-                            <button data-quality="fast" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Fast</button>
-                            <button data-quality="balanced" class="quality-option active flex-1 py-2 text-xs rounded-lg text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Balanced</button>
-                            <button data-quality="quality" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Quality</button>
-                        </div>
-                        <div class="flex justify-between mt-1.5">
-                            <span class="text-[10px] text-on-surface-variant/50 font-label">32 steps</span>
-                            <span class="text-[10px] text-on-surface-variant/50 font-label">64 steps</span>
-                            <span class="text-[10px] text-on-surface-variant/50 font-label">128 steps</span>
-                        </div>
-                    </div>
                     <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-surface-container/80 border border-outline-variant/10">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-on-surface-variant">schedule</span>
-                            <span class="text-[11px] text-on-surface-variant font-label">~1 min</span>
+                            <span class="text-[11px] text-on-surface-variant font-label">~2 min</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-lime">token</span>
-                            <span class="text-[11px] text-lime font-bold font-label">20 credits</span>
+                            <span class="text-[11px] text-lime font-bold font-label">40 credits</span>
                         </div>
                     </div>
                 </div>
@@ -244,14 +231,6 @@
                         <input id="img-gen-name" type="text"
                             class="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 transition-all"
                             placeholder="Give your generation a name" />
-                    </div>
-                    <div>
-                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-2 block">Quality</label>
-                        <div class="flex gap-1 bg-surface-container-high rounded-xl p-1 border border-outline-variant/15">
-                            <button data-quality="fast" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Fast</button>
-                            <button data-quality="balanced" class="quality-option active flex-1 py-2 text-xs rounded-lg text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Balanced</button>
-                            <button data-quality="quality" class="quality-option flex-1 py-2 text-xs rounded-lg text-on-surface-variant text-center transition-all duration-150 hover:text-on-surface [&.active]:bg-gradient-to-br [&.active]:from-lime [&.active]:to-[#8bc926] [&.active]:text-black [&.active]:font-semibold">Quality</button>
-                        </div>
                     </div>
                     <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-surface-container/80 border border-outline-variant/10">
                         <div class="flex items-center gap-2">
@@ -322,7 +301,7 @@
                     <button id="ctrl-screenshot" class="p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface" title="Screenshot">
                         <span class="material-symbols-outlined text-lg">screenshot_region</span>
                     </button>
-                    <button id="export-btn" class="p-2.5 bg-lime/20 hover:bg-lime/30 rounded-full transition-colors text-lime" title="Export OBJ">
+                    <button id="export-btn" class="p-2.5 bg-lime/20 hover:bg-lime/30 rounded-full transition-colors text-lime" title="Export GLB">
                         <span class="material-symbols-outlined text-lg">download</span>
                     </button>
                     <div class="w-px h-4 bg-outline-variant/20"></div>

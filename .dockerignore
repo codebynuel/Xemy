@@ -1,0 +1,12 @@
+node_modules/
+temp_models/
+public/
+.env
+.git/
+.github/
+*.md
+pnpm-lock.yaml
+package.json
+test.js
+server.js
+index.html
