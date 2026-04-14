@@ -58,7 +58,7 @@ def generate_3d(job):
             scene_codes = model([image], device="cuda")
         
         # 5. Extract the mesh and export as GLB
-        meshes = model.extract_mesh(scene_codes, resolution=256)
+        meshes = model.extract_mesh(scene_codes, resolution=512, has_vertex_color=False)
         mesh = meshes[0]
         
         # 6. Save to a temporary GLB file
