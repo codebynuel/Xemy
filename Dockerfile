@@ -11,11 +11,17 @@ RUN git clone https://github.com/VAST-AI-Research/TripoSR.git /app/TripoSR
 
 WORKDIR /app/TripoSR
 
-# Upgrade pip
-RUN pip install --upgrade pip
+# Upgrade pip and setuptools (needed for torchmcubes build)
+RUN pip install --upgrade pip "setuptools>=49.6.0"
+
+# Pin NumPy <2 to avoid incompatibility with PyTorch compiled against NumPy 1.x
+RUN pip install "numpy<2"
 
 # Install TripoSR dependencies (much lighter than TRELLIS)
-RUN pip install pillow transformers trimesh rembg onnxruntime numpy einops omegaconf pytorch-lightning huggingface_hub PyMCubes
+RUN pip install pillow transformers trimesh rembg onnxruntime einops omegaconf pytorch-lightning huggingface_hub
+
+# Install torchmcubes from source (TripoSR's marching cubes dependency)
+RUN pip install git+https://github.com/tatsy/torchmcubes.git
 
 # Install RunPod SDK
 RUN pip install runpod requests

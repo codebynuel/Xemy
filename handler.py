@@ -2,6 +2,7 @@ import runpod
 import torch
 import base64
 import requests
+import rembg
 from io import BytesIO
 from PIL import Image
 
@@ -40,23 +41,31 @@ def generate_3d(job):
         # 1. Fetch the 2D image from the URL
         response = requests.get(image_url)
         response.raise_for_status()
-        image = Image.open(BytesIO(response.content)).convert("RGB")
+        raw_image = Image.open(BytesIO(response.content))
         
-        print("Image downloaded. Running 3D synthesis...")
+        # 2. CRITICAL: Remove the background so TripoSR doesn't generate a cube!
+        print("Removing background...")
+        transparent_image = rembg.remove(raw_image)
         
-        # 2. Run TripoSR inference
+        # 3. Composite onto a clean white background (TripoSR's preferred format)
+        image = Image.new("RGB", transparent_image.size, (255, 255, 255))
+        image.paste(transparent_image, mask=transparent_image.split()[3]) # Use alpha channel as mask
+        
+        print("Image pre-processed. Running 3D synthesis...")
+        
+        # 4. Run TripoSR inference
         with torch.no_grad():
             scene_codes = model([image], device="cuda")
         
-        # 3. Extract the mesh and export as GLB
+        # 5. Extract the mesh and export as GLB
         meshes = model.extract_mesh(scene_codes, resolution=256)
         mesh = meshes[0]
         
-        # 4. Save to a temporary GLB file
+        # 6. Save to a temporary GLB file
         temp_path = "/tmp/output.glb"
         mesh.export(temp_path)
         
-        # 5. Encode the GLB to base64 to send back to Express
+        # 7. Encode the GLB to base64 to send back to Express
         with open(temp_path, "rb") as f:
             obj_base64 = base64.b64encode(f.read()).decode('utf-8')
         
