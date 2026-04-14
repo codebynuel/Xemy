@@ -12,6 +12,11 @@ let currentGenerationId = null;
 let currentViewMode = 'textured';
 let generations = [];
 
+// Credit economy state
+let userCredits = 0;
+let creditCosts = { text: 50, image: 50, multiImage: 75 };
+let currentImgMode = 'single'; // 'single' or 'multi'
+
 // --- Boot ---
 document.addEventListener('DOMContentLoaded', async () => {
     await verifyAuth();
@@ -42,8 +47,28 @@ async function verifyAuth() {
         document.getElementById('user-initials').textContent = initials;
         const sidebarName = document.getElementById('sidebar-user-name');
         if (sidebarName) sidebarName.textContent = name;
+
+        // Populate credit economy
+        if (data.credits !== undefined) userCredits = data.credits;
+        if (data.costs) creditCosts = data.costs;
+        updateCreditUI();
     } catch {
         window.location.replace('/auth/index.html');
+    }
+}
+
+function updateCreditUI() {
+    const badge = document.getElementById('credit-balance');
+    if (badge) badge.textContent = userCredits;
+
+    const textCost = document.getElementById('text-cost-label');
+    if (textCost) textCost.textContent = `${creditCosts.text} credits`;
+
+    const imgCost = document.getElementById('img-cost-label');
+    if (imgCost) {
+        // Show multi-image cost when in multi mode
+        const cost = currentImgMode === 'multi' ? creditCosts.multiImage : creditCosts.image;
+        imgCost.textContent = `${cost} credits`;
     }
 }
 
@@ -64,9 +89,10 @@ function initSocketio() {
         setStatus('busy', messages[status] || `Status: ${status}`);
     });
 
-    socket.on('generation_complete', ({ modelUrl, generationId, prompt, name, thumbnail }) => {
+    socket.on('generation_complete', ({ modelUrl, generationId, prompt, name, thumbnail, credits }) => {
         currentModelUrl = modelUrl;
         currentGenerationId = generationId;
+        if (credits !== undefined) { userCredits = credits; updateCreditUI(); }
         setStatus('loading', 'Downloading model...');
         loadModel(modelUrl, () => {
             // Add to history panel using backend-generated thumbnail
@@ -74,7 +100,8 @@ function initSocketio() {
         });
     });
 
-    socket.on('generation_failed', ({ error }) => {
+    socket.on('generation_failed', ({ error, credits }) => {
+        if (credits !== undefined) { userCredits = credits; updateCreditUI(); }
         setStatus('error', `Failed: ${error}`);
         setForgeState('idle');
     });
@@ -289,7 +316,6 @@ function bindImageUpload() {
 
     let selectedImageFile = null;
     let selectedMultiFiles = []; // up to 5
-    let currentImgMode = 'single'; // 'single' or 'multi'
 
     // --- Single/Multi Toggle ---
     document.querySelectorAll('.img-mode-tab').forEach(tab => {
@@ -304,6 +330,7 @@ function bindImageUpload() {
                 singleZone.classList.add('hidden');
                 multiZone.classList.remove('hidden');
             }
+            updateCreditUI();
         });
     });
 
@@ -438,6 +465,12 @@ function bindImageUpload() {
             return;
         }
 
+        const requiredCredits = isMulti ? creditCosts.multiImage : creditCosts.image;
+        if (userCredits < requiredCredits) {
+            setStatus('error', `Insufficient credits (need ${requiredCredits}, have ${userCredits})`);
+            return;
+        }
+
         setForgeState('loading');
         setStatus('busy', 'Uploading image(s)...');
 
@@ -473,6 +506,7 @@ function bindImageUpload() {
                 throw new Error(err.error || 'Request failed');
             }
             const data = await res.json();
+            if (data.credits !== undefined) { userCredits = data.credits; updateCreditUI(); }
             setStatus('busy', `Forging \u2014 Job ${(data.jobId || '').slice(0, 8) || '...'}`);
         } catch (err) {
             setStatus('error', err.message);
@@ -496,6 +530,11 @@ async function forge() {
         return;
     }
 
+    if (userCredits < creditCosts.text) {
+        setStatus('error', `Insufficient credits (need ${creditCosts.text}, have ${userCredits})`);
+        return;
+    }
+
     const name = document.getElementById('gen-name')?.value.trim() || '';
 
     setForgeState('loading');
@@ -512,6 +551,7 @@ async function forge() {
             throw new Error(err.error || 'Request failed');
         }
         const data = await res.json();
+        if (data.credits !== undefined) { userCredits = data.credits; updateCreditUI(); }
         setStatus('busy', `Forging \u2014 Job ${(data.jobId || '').slice(0, 8) || '...'}`);
     } catch (err) {
         setStatus('error', err.message);

@@ -64,10 +64,24 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/xemy')
     .then(() => console.log('📦 Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
 
+// Credit economy — all tuneable via .env
+const CREDITS_FREE    = parseInt(process.env.CREDITS_FREE)    || 150;
+const CREDITS_STARTER = parseInt(process.env.CREDITS_STARTER) || 1500;
+const CREDITS_PRO     = parseInt(process.env.CREDITS_PRO)     || 5000;
+const COST_TEXT_TO_3D       = parseInt(process.env.COST_TEXT_TO_3D)       || 50;
+const COST_IMAGE_TO_3D      = parseInt(process.env.COST_IMAGE_TO_3D)     || 50;
+const COST_MULTI_IMAGE_TO_3D = parseInt(process.env.COST_MULTI_IMAGE_TO_3D) || 75;
+
+const PLAN_CREDITS = { free: CREDITS_FREE, starter: CREDITS_STARTER, pro: CREDITS_PRO, enterprise: Infinity };
+
 const userSchema = new mongoose.Schema({
-    name: { type: String },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    name:             { type: String },
+    email:            { type: String, required: true, unique: true },
+    password:         { type: String, required: true },
+    credits:          { type: Number, default: CREDITS_FREE },
+    plan:             { type: String, enum: ['free', 'starter', 'pro', 'enterprise'], default: 'free' },
+    creditsResetAt:   { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+    totalCreditsUsed: { type: Number, default: 0 }
 });
 const User = mongoose.model('User', userSchema);
 
@@ -82,6 +96,7 @@ const generationSchema = new mongoose.Schema({
     modelUrl:       { type: String },
     thumbnail:      { type: String, default: '' },
     status:         { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+    creditCost:     { type: Number, default: 0 },
     createdAt:      { type: Date, default: Date.now }
 });
 generationSchema.index({ userId: 1, createdAt: -1 });
@@ -106,7 +121,14 @@ app.post('/api/auth/register', async (req, res) => {
         if (existingUser) return res.status(400).json({ error: 'User already exists' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ name, email, password: hashedPassword });
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            credits: CREDITS_FREE,
+            plan: 'free',
+            creditsResetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        });
         await newUser.save();
 
         const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'xemy_secret', { expiresIn: '7d' });
@@ -145,7 +167,22 @@ app.get('/api/auth/verify', async (req, res) => {
         const user = await User.findById(decoded.userId);
         if (!user) return res.status(401).json({ authenticated: false });
 
-        res.status(200).json({ authenticated: true, user: { id: user._id, name: user.name, email: user.email } });
+        // Lazy monthly credit reset
+        if (user.creditsResetAt && user.creditsResetAt <= new Date()) {
+            const allowance = PLAN_CREDITS[user.plan] ?? CREDITS_FREE;
+            user.credits = allowance;
+            user.creditsResetAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            await user.save();
+        }
+
+        res.status(200).json({
+            authenticated: true,
+            user: { id: user._id, name: user.name, email: user.email },
+            credits: user.credits,
+            plan: user.plan,
+            creditsResetAt: user.creditsResetAt,
+            costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D }
+        });
     } catch (error) {
         res.status(401).json({ authenticated: false });
     }
@@ -154,6 +191,27 @@ app.get('/api/auth/verify', async (req, res) => {
 app.post('/api/auth/logout', (req, res) => {
     res.clearCookie('authToken');
     res.status(200).json({ message: 'Logout successful' });
+});
+
+// Credit balance endpoint
+app.get('/api/credits', async (req, res) => {
+    const user = await authenticateRequest(req);
+    if (!user) return res.status(401).json({ error: 'Not authenticated' });
+
+    // Lazy monthly credit reset
+    if (user.creditsResetAt && user.creditsResetAt <= new Date()) {
+        const allowance = PLAN_CREDITS[user.plan] ?? CREDITS_FREE;
+        user.credits = allowance;
+        user.creditsResetAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await user.save();
+    }
+
+    res.json({
+        credits: user.credits,
+        plan: user.plan,
+        creditsResetAt: user.creditsResetAt,
+        costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D }
+    });
 });
 
 // ---------------------------------------------------------
@@ -277,6 +335,26 @@ app.post('/api/generate', async (req, res) => {
 
     const FAL_KEY = process.env.FAL_KEY;
 
+    // Calculate credit cost for this generation
+    const isMultiImage = Array.isArray(imageUrls) && imageUrls.length > 1;
+    const creditCost = isMultiImage ? COST_MULTI_IMAGE_TO_3D
+                     : mode === 'text' ? COST_TEXT_TO_3D
+                     : COST_IMAGE_TO_3D;
+
+    // Atomic credit deduction — prevents race conditions
+    const deducted = await User.findOneAndUpdate(
+        { _id: user._id, credits: { $gte: creditCost } },
+        { $inc: { credits: -creditCost, totalCreditsUsed: creditCost } },
+        { new: true }
+    );
+    if (!deducted) {
+        return res.status(403).json({
+            error: 'Insufficient credits',
+            credits: user.credits,
+            required: creditCost
+        });
+    }
+
     // Create a pending generation record
     let generation;
     try {
@@ -287,7 +365,8 @@ app.post('/api/generate', async (req, res) => {
             prompt: prompt || '',
             name: name || '',
             referenceImage: imageUrl || '',
-            status: 'pending'
+            status: 'pending',
+            creditCost
         });
     } catch (dbErr) {
         console.error('Failed to create generation record:', dbErr);
@@ -311,7 +390,6 @@ app.post('/api/generate', async (req, res) => {
         // Submit to fal.ai TRELLIS (single or multi-image)
         io.to(safeSessionId).emit('generation_status', { status: 'IN_QUEUE' });
 
-        const isMultiImage = Array.isArray(imageUrls) && imageUrls.length > 1;
         const trellisEndpoint = isMultiImage
             ? 'https://queue.fal.run/fal-ai/trellis/multi-image'
             : 'https://queue.fal.run/fal-ai/trellis';
@@ -334,10 +412,12 @@ app.post('/api/generate', async (req, res) => {
         const responseUrl = submitData.response_url;
         if (!requestId || !statusUrl || !responseUrl) {
             await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
+            // Refund credits
+            await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
             return res.status(500).json({ error: 'Failed to queue job on fal.ai' });
         }
 
-        res.status(200).json({ jobId: requestId, status: 'IN_QUEUE', generationId: generation._id });
+        res.status(200).json({ jobId: requestId, status: 'IN_QUEUE', generationId: generation._id, credits: deducted.credits });
 
         // Poll fal.ai every 5 seconds until the job finishes
         let pollDone = false;
@@ -367,7 +447,9 @@ app.post('/api/generate', async (req, res) => {
                     const glbUrl = resultData.model_mesh?.url;
                     if (!glbUrl) {
                         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-                        io.to(safeSessionId).emit('generation_failed', { error: 'Generation completed but model data was empty' });
+                        await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
+                        const refunded = await User.findById(user._id);
+                        io.to(safeSessionId).emit('generation_failed', { error: 'Generation completed but model data was empty', credits: refunded?.credits });
                         return;
                     }
 
@@ -375,7 +457,9 @@ app.post('/api/generate', async (req, res) => {
                     const glbRes = await fetch(glbUrl);
                     if (!glbRes.ok) {
                         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-                        io.to(safeSessionId).emit('generation_failed', { error: 'Failed to download model file' });
+                        await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
+                        const refunded = await User.findById(user._id);
+                        io.to(safeSessionId).emit('generation_failed', { error: 'Failed to download model file', credits: refunded?.credits });
                         return;
                     }
                     const glbBuffer = Buffer.from(await glbRes.arrayBuffer());
@@ -407,14 +491,18 @@ app.post('/api/generate', async (req, res) => {
                         generationId: generation._id,
                         prompt: prompt || '',
                         name: name || '',
-                        thumbnail: thumbnailUrl
+                        thumbnail: thumbnailUrl,
+                        credits: deducted.credits
                     });
 
                 } else if (pollData.error) {
                     pollDone = true;
                     clearInterval(poll);
                     await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-                    io.to(safeSessionId).emit('generation_failed', { error: pollData.error });
+                    // Refund credits on poll failure
+                    await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
+                    const refunded = await User.findById(user._id);
+                    io.to(safeSessionId).emit('generation_failed', { error: pollData.error, credits: refunded?.credits });
                 }
             } catch (pollError) {
                 console.error(`Polling error for request ${requestId}:`, pollError);
@@ -424,7 +512,10 @@ app.post('/api/generate', async (req, res) => {
     } catch (error) {
         console.error('Generation error:', error);
         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-        io.to(safeSessionId).emit('generation_failed', { error: error.message || 'Failed to start generation' });
+        // Refund credits on catch-all failure
+        await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
+        const refunded = await User.findById(user._id);
+        io.to(safeSessionId).emit('generation_failed', { error: error.message || 'Failed to start generation', credits: refunded?.credits });
         if (!res.headersSent) res.status(500).json({ error: 'Failed to start generation' });
     }
 });
