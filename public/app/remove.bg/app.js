@@ -22,7 +22,7 @@ function updateCreditUI() {
     document.getElementById('cost-label').textContent = `${cost} credits`;
 }
 
-document.getElementById('logout-btn').addEventListener('click', async () => {
+document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     window.location.href = '/auth/';
 });

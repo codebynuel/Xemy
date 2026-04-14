@@ -47,9 +47,7 @@
         .panel-scroll::-webkit-scrollbar-track { background: transparent; }
         .panel-scroll::-webkit-scrollbar-thumb { background: #48474a; border-radius: 2px; }
         .panel-scroll::-webkit-scrollbar-thumb:hover { background: #767577; }
-        #icon-rail { width: 56px; transition: width 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
-        #icon-rail:hover { width: 200px; }
-        #icon-rail:hover ~ #app-layout { margin-left: 200px; }
+
         /* Checkerboard pattern for transparency */
         .checkerboard {
             background-image: linear-gradient(45deg, #2a2a2d 25%, transparent 25%),
@@ -70,61 +68,15 @@
     </style>
 </head>
 
-<body class="bg-background text-on-surface font-body selection:bg-primary/30 overflow-hidden">
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 overflow-hidden" data-page="removebg">
 
-    <!-- Sidebar -->
-    <aside id="icon-rail" class="group fixed left-0 top-0 h-screen flex flex-col py-5 px-2 bg-[#111113] border-r border-outline-variant/10 z-50">
-        <div class="flex items-center gap-2 px-1.5 mb-6">
-            <img src="/assets/brand_assets/logo.svg" alt="Xemy" class="h-7 w-auto min-w-[28px]" />
-            <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-base font-bold text-on-surface font-headline">Xemy</span>
-        </div>
-        <nav class="flex flex-col gap-1 flex-1">
-            <a href="/app/3d.model.creator/" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
-                <span class="material-symbols-outlined text-xl min-w-[24px]">view_in_ar</span>
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">3D Model Creator</span>
-            </a>
-            <a href="/app/remove.bg/" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-lime bg-lime/10 transition-colors">
-                <span class="material-symbols-outlined text-xl min-w-[24px]">content_cut</span>
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Remove Background</span>
-            </a>
-        </nav>
-        <div class="flex flex-col gap-1">
-            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
-                <span class="material-symbols-outlined text-xl min-w-[24px]">settings</span>
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Settings</span>
-            </a>
-            <div class="flex items-center gap-3 px-2 py-2 mt-1">
-                <div class="w-8 h-8 min-w-[32px] rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20 cursor-pointer">
-                    <span id="user-initials" class="text-[10px] font-bold text-lime">?</span>
-                </div>
-                <span id="sidebar-user-name" class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium text-on-surface truncate"></span>
-            </div>
-        </div>
-    </aside>
+    <div id="sidebar-mount"></div>
+    <script src="/app/shared/layout.js"></script>
 
     <!-- Main Layout -->
     <div id="app-layout" class="flex flex-col h-screen ml-14 transition-[margin-left] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]">
 
-        <!-- Top Header -->
-        <header class="h-12 min-h-[48px] flex items-center justify-between px-5 bg-[#111113] border-b border-outline-variant/10 z-40">
-            <div class="flex items-center gap-6">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-lime text-lg">content_cut</span>
-                    <span class="text-sm font-headline font-bold text-on-surface">Background Remover</span>
-                </div>
-                <nav class="flex items-center gap-5 text-xs font-label">
-                    <a class="text-on-surface-variant hover:text-on-surface transition-colors" href="/app/3d.model.creator/">3D Creator</a>
-                    <a class="text-lime" href="/app/remove.bg/">Remove BG</a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lime/10 border border-lime/20">
-                    <span class="material-symbols-outlined text-lime text-sm">token</span>
-                    <span id="credit-balance" class="text-xs font-bold text-lime font-label">—</span>
-                </div>
-                <button id="logout-btn" class="text-on-surface-variant hover:text-on-surface transition-colors" title="Logout"><span class="material-symbols-outlined text-lg">logout</span></button>
-            </div>
-        </header>
+        <div id="header-mount"></div>
 
         <!-- Content -->
         <div class="flex flex-1 overflow-hidden">
