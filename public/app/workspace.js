@@ -1,14 +1,15 @@
 ﻿import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 // --- App State ---
 let socket, sessionId;
-let scene, camera, renderer, controls, gridHelper;
+let scene, camera, renderer, controls, gridHelper, envMap;
 let currentModel = null;
 let currentModelUrl = null;
 let currentGenerationId = null;
-let isWireframe = false;
+let currentViewMode = 'textured';
 let generations = [];
 
 // --- Boot ---
@@ -89,33 +90,22 @@ function initViewport() {
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.4;
+    renderer.toneMappingExposure = 1.0;
 
     scene = new THREE.Scene();
 
+    // Environment-based lighting (neutral studio)
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+    envMap = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    scene.environment = envMap;
+    pmremGenerator.dispose();
+
+    // Subtle ambient fill
+    scene.add(new THREE.AmbientLight(0xffffff, 0.15));
+
     camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
     camera.position.set(0, 2, 5);
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-
-    // Key light (warm, from top-right)
-    const keyLight = new THREE.DirectionalLight(0xfff4e6, 1.8);
-    keyLight.position.set(4, 6, 4);
-    scene.add(keyLight);
-
-    // Fill light (cool, from left)
-    const fillLight = new THREE.DirectionalLight(0xcce0ff, 0.6);
-    fillLight.position.set(-4, 2, -2);
-    scene.add(fillLight);
-
-    // Rim / back light (subtle accent)
-    const rimLight = new THREE.DirectionalLight(0xcf96ff, 0.4);
-    rimLight.position.set(0, 3, -5);
-    scene.add(rimLight);
-
-    // Hemisphere light for natural sky/ground gradient
-    const hemiLight = new THREE.HemisphereLight(0xc8d8ff, 0x3a2a1a, 0.4);
-    scene.add(hemiLight);
 
     gridHelper = new THREE.GridHelper(14, 28, 0x48474a, 0x262528);
     gridHelper.material.opacity = 0.4;
@@ -161,20 +151,22 @@ function loadModel(url, onComplete) {
             model.position.sub(center);
             if (maxDim > 0) model.scale.multiplyScalar(2.5 / maxDim);
 
-            // Store original materials for wireframe toggle restore
+            // Clone and store original materials for view mode switching
             model.traverse(child => {
                 if (child.isMesh) {
-                    child.userData.originalMaterial = child.material;
+                    child.userData.originalMaterial = child.material.clone ? child.material.clone() : child.material;
                 }
             });
 
             scene.add(model);
             currentModel = model;
-            isWireframe = false;
+            currentViewMode = 'solid';
+            applyViewMode('solid');
 
             updateModelStats();
             document.getElementById('viewport-empty')?.classList.add('hidden');
             document.getElementById('model-stats')?.classList.remove('hidden');
+            document.getElementById('apply-texture-btn')?.classList.remove('hidden');
 
             setStatus('ready', 'Ready to generate');
             setForgeState('idle');
@@ -190,6 +182,43 @@ function loadModel(url, onComplete) {
             showViewportLoader(false);
         }
     );
+}
+
+// --- View Modes ---
+function applyViewMode(mode) {
+    if (!currentModel) return;
+    currentViewMode = mode;
+    updateViewModeButtons();
+
+    const applyBtn = document.getElementById('apply-texture-btn');
+    if (applyBtn) applyBtn.classList.toggle('hidden', mode === 'textured');
+
+    currentModel.traverse(child => {
+        if (!child.isMesh) return;
+        switch (mode) {
+            case 'textured':
+                child.material = child.userData.originalMaterial.clone ? child.userData.originalMaterial.clone() : child.userData.originalMaterial;
+                break;
+            case 'solid':
+                child.material = new THREE.MeshStandardMaterial({ color: 0xb0b0b0, metalness: 0.05, roughness: 0.6 });
+                break;
+            case 'wireframe':
+                child.material = new THREE.MeshBasicMaterial({ color: 0xb8f147, wireframe: true });
+                break;
+            case 'normals':
+                child.material = new THREE.MeshNormalMaterial();
+                break;
+        }
+    });
+}
+
+function updateViewModeButtons() {
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        const isActive = btn.dataset.view === currentViewMode;
+        btn.className = isActive
+            ? 'view-mode-btn p-2 rounded-full transition-colors bg-lime/20 text-lime'
+            : 'view-mode-btn p-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface';
+    });
 }
 
 function showViewportLoader(show) {
@@ -247,10 +276,38 @@ function bindImageUpload() {
     const clearBtn = document.getElementById('image-clear-btn');
     const imgForgeBtn = document.getElementById('img-forge-btn');
 
+    // Multi-image elements
+    const multiImageGrid = document.getElementById('multi-image-grid');
+    const multiImageAdd = document.getElementById('multi-image-add');
+    const multiFileInput = document.getElementById('multi-image-file-input');
+    const multiImageCount = document.getElementById('multi-image-count');
+    const multiClearAll = document.getElementById('multi-image-clear-all');
+    const singleZone = document.getElementById('single-image-zone');
+    const multiZone = document.getElementById('multi-image-zone');
+
     if (!dropZone) return;
 
     let selectedImageFile = null;
+    let selectedMultiFiles = []; // up to 5
+    let currentImgMode = 'single'; // 'single' or 'multi'
 
+    // --- Single/Multi Toggle ---
+    document.querySelectorAll('.img-mode-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.img-mode-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentImgMode = tab.dataset.imgMode;
+            if (currentImgMode === 'single') {
+                singleZone.classList.remove('hidden');
+                multiZone.classList.add('hidden');
+            } else {
+                singleZone.classList.add('hidden');
+                multiZone.classList.remove('hidden');
+            }
+        });
+    });
+
+    // --- Single image handlers (unchanged) ---
     dropZone.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', (e) => {
@@ -276,7 +333,12 @@ function bindImageUpload() {
         if (!items) return;
         for (const item of items) {
             if (item.type.startsWith('image/')) {
-                handleImageFile(item.getAsFile());
+                const file = item.getAsFile();
+                if (currentImgMode === 'multi') {
+                    addMultiFiles([file]);
+                } else {
+                    handleImageFile(file);
+                }
                 break;
             }
         }
@@ -305,44 +367,113 @@ function bindImageUpload() {
         reader.readAsDataURL(file);
     }
 
+    // --- Multi image handlers ---
+    multiImageAdd?.addEventListener('click', () => multiFileInput.click());
+
+    multiImageAdd?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        multiImageAdd.classList.add('dragover');
+    });
+    multiImageAdd?.addEventListener('dragleave', () => multiImageAdd.classList.remove('dragover'));
+    multiImageAdd?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        multiImageAdd.classList.remove('dragover');
+        if (e.dataTransfer.files?.length) addMultiFiles([...e.dataTransfer.files]);
+    });
+
+    multiFileInput?.addEventListener('change', (e) => {
+        if (e.target.files?.length) addMultiFiles([...e.target.files]);
+        multiFileInput.value = '';
+    });
+
+    multiClearAll?.addEventListener('click', () => {
+        selectedMultiFiles = [];
+        renderMultiGrid();
+    });
+
+    function addMultiFiles(files) {
+        for (const file of files) {
+            if (selectedMultiFiles.length >= 5) break;
+            if (!file.type.startsWith('image/')) continue;
+            if (file.size > 20 * 1024 * 1024) { setStatus('error', 'Image too large (max 20MB)'); continue; }
+            selectedMultiFiles.push(file);
+        }
+        renderMultiGrid();
+    }
+
+    function renderMultiGrid() {
+        multiImageGrid.innerHTML = '';
+        multiImageCount.textContent = selectedMultiFiles.length;
+        multiClearAll.classList.toggle('hidden', selectedMultiFiles.length === 0);
+
+        selectedMultiFiles.forEach((file, idx) => {
+            const div = document.createElement('div');
+            div.className = 'relative group aspect-square rounded-lg overflow-hidden border border-outline-variant/20 bg-surface-container-high';
+            const img = document.createElement('img');
+            img.className = 'w-full h-full object-cover';
+            img.src = URL.createObjectURL(file);
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'absolute top-1 right-1 p-0.5 rounded bg-error/80 hover:bg-error opacity-0 group-hover:opacity-100 transition-opacity';
+            removeBtn.innerHTML = '<span class="material-symbols-outlined text-[14px] text-white">close</span>';
+            removeBtn.addEventListener('click', () => {
+                selectedMultiFiles.splice(idx, 1);
+                renderMultiGrid();
+            });
+            div.appendChild(img);
+            div.appendChild(removeBtn);
+            multiImageGrid.appendChild(div);
+        });
+    }
+
+    // --- Forge (image mode) ---
     imgForgeBtn?.addEventListener('click', async () => {
-        if (!selectedImageFile) {
+        const isMulti = currentImgMode === 'multi';
+
+        if (isMulti && selectedMultiFiles.length < 2) {
+            setStatus('error', 'Please upload at least 2 images for multi-image mode');
+            return;
+        }
+        if (!isMulti && !selectedImageFile) {
             setStatus('error', 'Please upload a reference image first');
             return;
         }
 
         setForgeState('loading');
-        setStatus('busy', 'Uploading image...');
+        setStatus('busy', 'Uploading image(s)...');
 
         try {
-            // Upload the image to the server
-            const formData = new FormData();
-            formData.append('image', selectedImageFile);
+            const filesToUpload = isMulti ? selectedMultiFiles : [selectedImageFile];
+            const uploadedUrls = [];
 
-            const uploadRes = await fetch('/api/upload-image', {
-                method: 'POST',
-                body: formData
-            });
-            if (!uploadRes.ok) {
-                const err = await uploadRes.json().catch(() => ({}));
-                throw new Error(err.error || 'Upload failed');
+            for (const file of filesToUpload) {
+                const formData = new FormData();
+                formData.append('image', file);
+                const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json().catch(() => ({}));
+                    throw new Error(err.error || 'Upload failed');
+                }
+                const { imageUrl } = await uploadRes.json();
+                uploadedUrls.push(imageUrl);
             }
-            const { imageUrl } = await uploadRes.json();
 
             const imgName = document.getElementById('img-gen-name')?.value.trim() || '';
 
-            // Trigger generation with mode: 'image'
+            const body = isMulti
+                ? { mode: 'image', imageUrls: uploadedUrls, name: imgName, sessionId }
+                : { mode: 'image', imageUrl: uploadedUrls[0], name: imgName, sessionId };
+
             const res = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: 'image', imageUrl, name: imgName, sessionId }),
+                body: JSON.stringify(body),
             });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
                 throw new Error(err.error || 'Request failed');
             }
             const data = await res.json();
-            setStatus('busy', `Forging — Job ${(data.jobId || '').slice(0, 8) || '...'}`);
+            setStatus('busy', `Forging \u2014 Job ${(data.jobId || '').slice(0, 8) || '...'}`);
         } catch (err) {
             setStatus('error', err.message);
             setForgeState('idle');
@@ -424,33 +555,13 @@ function bindViewportControls() {
         gridHelper.visible = !gridHelper.visible;
     });
 
-    document.getElementById('ctrl-wireframe').addEventListener('click', () => {
-        if (!currentModel) return;
-        isWireframe = !isWireframe;
-        currentModel.traverse(child => {
-            if (child.isMesh) {
-                if (isWireframe) {
-                    child.material = new THREE.MeshBasicMaterial({ color: 0xb8f147, wireframe: true });
-                } else {
-                    child.material = child.userData.originalMaterial || new THREE.MeshStandardMaterial({ color: 0xd4d4d4, metalness: 0.15, roughness: 0.55 });
-                }
-            }
-        });
+    // View mode buttons
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyViewMode(btn.dataset.view));
     });
 
-    document.getElementById('ctrl-material').addEventListener('click', () => {
-        if (!currentModel) return;
-        if (isWireframe) return; // don't cycle colors while in wireframe
-        const colors = [0xb8f147, 0xcf96ff, 0x00eefc, 0xff59e3, 0xffffff, 0xff6e84];
-        const current = currentModel.userData.colorIndex || 0;
-        const next = (current + 1) % colors.length;
-        currentModel.userData.colorIndex = next;
-        currentModel.traverse(child => {
-            if (child.isMesh && child.material) {
-                // Override material with solid color (loses texture)
-                child.material = new THREE.MeshStandardMaterial({ color: colors[next], metalness: 0.15, roughness: 0.55 });
-            }
-        });
+    document.getElementById('apply-texture-btn')?.addEventListener('click', () => {
+        applyViewMode('textured');
     });
 
     document.getElementById('ctrl-screenshot').addEventListener('click', () => {

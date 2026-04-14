@@ -261,10 +261,10 @@ app.post('/api/upload-image', async (req, res) => {
 // ROUTE: Trigger the GPU and poll for completion
 // ---------------------------------------------------------
 app.post('/api/generate', async (req, res) => {
-    const { mode, prompt, imageUrl, sessionId, name } = req.body;
+    const { mode, prompt, imageUrl, imageUrls, sessionId, name } = req.body;
     if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
     if (mode === 'text' && !prompt) return res.status(400).json({ error: 'Missing prompt' });
-    if (mode === 'image' && !imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
+    if (mode === 'image' && !imageUrl && (!imageUrls || !imageUrls.length)) return res.status(400).json({ error: 'Missing image(s)' });
 
     const user = await authenticateRequest(req);
     if (!user) return res.status(401).json({ error: 'Not authenticated' });
@@ -275,8 +275,7 @@ app.post('/api/generate', async (req, res) => {
         return res.status(400).json({ error: 'Invalid session ID' });
     }
 
-    const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY;
-    const ENDPOINT_ID = process.env.ENDPOINT_ID;
+    const FAL_KEY = process.env.FAL_KEY;
 
     // Create a pending generation record
     let generation;
@@ -309,59 +308,83 @@ app.post('/api/generate', async (req, res) => {
             await Generation.findByIdAndUpdate(generation._id, { referenceImage: referenceImageUrl, thumbnail: thumbnailUrl });
         }
 
-        // Submit to RunPod TRELLIS with image_url
+        // Submit to fal.ai TRELLIS (single or multi-image)
         io.to(safeSessionId).emit('generation_status', { status: 'IN_QUEUE' });
 
-        const runRes = await fetch(`https://api.runpod.ai/v2/${ENDPOINT_ID}/run`, {
+        const isMultiImage = Array.isArray(imageUrls) && imageUrls.length > 1;
+        const trellisEndpoint = isMultiImage
+            ? 'https://queue.fal.run/fal-ai/trellis/multi-image'
+            : 'https://queue.fal.run/fal-ai/trellis';
+        const trellisInput = isMultiImage
+            ? { image_urls: imageUrls }
+            : { image_url: referenceImageUrl || (imageUrls && imageUrls[0]) };
+
+        const submitRes = await fetch(trellisEndpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${RUNPOD_API_KEY}`,
+                'Authorization': `Key ${FAL_KEY}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ input: { image_url: referenceImageUrl } })
+            body: JSON.stringify(trellisInput)
         });
 
-        const runData = await runRes.json();
-        const jobId = runData.id;
-        if (!jobId) {
+        const submitData = await submitRes.json();
+        const requestId = submitData.request_id;
+        const statusUrl = submitData.status_url;
+        const responseUrl = submitData.response_url;
+        if (!requestId || !statusUrl || !responseUrl) {
             await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-            return res.status(500).json({ error: 'Failed to queue job on RunPod' });
+            return res.status(500).json({ error: 'Failed to queue job on fal.ai' });
         }
 
-        res.status(200).json({ jobId, status: 'IN_QUEUE', generationId: generation._id });
+        res.status(200).json({ jobId: requestId, status: 'IN_QUEUE', generationId: generation._id });
 
-        // Poll RunPod every 5 seconds until the job finishes
+        // Poll fal.ai every 5 seconds until the job finishes
         let pollDone = false;
         const poll = setInterval(async () => {
             if (pollDone) return;
             try {
-                const statusRes = await fetch(`https://api.runpod.ai/v2/${ENDPOINT_ID}/status/${jobId}`, {
-                    headers: { 'Authorization': `Bearer ${RUNPOD_API_KEY}` }
+                const pollRes = await fetch(statusUrl, {
+                    headers: { 'Authorization': `Key ${FAL_KEY}` }
                 });
-                const statusData = await statusRes.json();
-                const status = statusData.status;
+                const pollData = await pollRes.json();
+                const status = pollData.status;
 
-                console.log(`   Polling ${jobId.slice(0, 8)} — ${status}`);
+                console.log(`   Polling ${requestId.slice(0, 8)} — ${status}`);
 
-                io.to(safeSessionId).emit('generation_status', { jobId, status });
+                io.to(safeSessionId).emit('generation_status', { jobId: requestId, status });
 
                 if (status === 'COMPLETED') {
                     pollDone = true;
                     clearInterval(poll);
 
-                    const glbB64 = statusData.output?.model_data;
-                    if (!glbB64) {
+                    // Fetch the result from fal.ai
+                    const resultRes = await fetch(responseUrl, {
+                        headers: { 'Authorization': `Key ${FAL_KEY}` }
+                    });
+                    const resultData = await resultRes.json();
+
+                    const glbUrl = resultData.model_mesh?.url;
+                    if (!glbUrl) {
                         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
                         io.to(safeSessionId).emit('generation_failed', { error: 'Generation completed but model data was empty' });
                         return;
                     }
 
+                    // Download the GLB file from fal.ai (URLs expire)
+                    const glbRes = await fetch(glbUrl);
+                    if (!glbRes.ok) {
+                        await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
+                        io.to(safeSessionId).emit('generation_failed', { error: 'Failed to download model file' });
+                        return;
+                    }
+                    const glbBuffer = Buffer.from(await glbRes.arrayBuffer());
+
                     const userDir = path.join(TEMP_DIR, safeSessionId);
                     if (!fs.existsSync(userDir)) fs.mkdirSync(userDir);
 
-                    const fileName = `${jobId}.glb`;
+                    const fileName = `${requestId}.glb`;
                     const filePath = path.join(userDir, fileName);
-                    const glbBuffer = Buffer.from(glbB64, 'base64');
                     fs.writeFileSync(filePath, glbBuffer);
 
                     const modelUrl = `${process.env.LOCAL_URL}/models/${safeSessionId}/${fileName}`;
@@ -387,14 +410,14 @@ app.post('/api/generate', async (req, res) => {
                         thumbnail: thumbnailUrl
                     });
 
-                } else if (['FAILED', 'CANCELLED', 'TIMED_OUT'].includes(status)) {
+                } else if (pollData.error) {
                     pollDone = true;
                     clearInterval(poll);
                     await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
-                    io.to(safeSessionId).emit('generation_failed', { error: `Generation ${status.toLowerCase()}` });
+                    io.to(safeSessionId).emit('generation_failed', { error: pollData.error });
                 }
             } catch (pollError) {
-                console.error(`Polling error for job ${jobId}:`, pollError);
+                console.error(`Polling error for request ${requestId}:`, pollError);
             }
         }, 5000);
 

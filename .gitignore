@@ -1,5 +1,7 @@
 node_modules/
 .vscode/
 .env
+.github/
 test.js
 temp_models/
+.github/workflows/deploy.yaml
