@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="4.30987in" height="4.28258in" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 4.30987 4.28258"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .fil0 {fill:#C2C1C1}
+    .fil2 {fill:url(#id0);fill-rule:nonzero}
+    .fil1 {fill:url(#id1);fill-rule:nonzero}
+   ]]>
+  </style>
+  <linearGradient id="id0" gradientUnits="userSpaceOnUse" x1="0" y1="2.14129" x2="4.28258" y2="2.14129">
+   <stop offset="0" style="stop-color:#B8F147"/>
+   <stop offset="1" style="stop-color:#8BC926"/>
+  </linearGradient>
+  <linearGradient id="id1" gradientUnits="userSpaceOnUse" xlink:href="#id0" x1="0.0901575" y1="2.14129" x2="4.19243" y2="2.14129">
+  </linearGradient>
+ </defs>
+ <g id="Layer_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <g id="_145783816">
+   <circle id="_145147472" class="fil0" cx="3.9611" cy="2.14129" r="0.348774"/>
+   <path id="_145145792" class="fil1" d="M4 1.21193c-0.929354,0.929354 -1.85871,1.85871 -2.78807,2.78807 -0.256567,0.256567 -0.672783,0.256567 -0.92935,0 -0.256567,-0.256567 -0.256567,-0.672783 0,-0.92935 0.929354,-0.929354 1.85871,-1.85871 2.78807,-2.78807m0.92935 0.92935c-0.256567,0.256567 -0.672783,0.256567 -0.92935,0 -0.256567,-0.256567 -0.256567,-0.672783 0,-0.92935 0.256567,-0.256567 0.672783,-0.256567 0.92935,0 0.256567,0.256567 0.256567,0.672783 0,0.92935zm-1.39404 1.39403m-1.8587 1.58646m-0.657098 -0.657098m1.58646 -1.8587m1.8587 -0.272264m-0.657094 -0.657094m0.657098 -0.657102m0.657098 0.657098"/>
+   <path id="_145146344" class="fil2" d="M1.17108 0.200882c0.970205,0.970205 1.94041,1.94041 2.91062,2.91062 0.267843,0.267843 0.267843,0.702358 0,0.970201 -0.267843,0.267843 -0.702358,0.267843 -0.970201,0 -0.970205,-0.970205 -1.94041,-1.94041 -2.91062,-2.91062m0.970201 -0.970201c0.267843,0.267843 0.267843,0.702358 0,0.970201 -0.267843,0.267843 -0.702358,0.267843 -0.970201,0 -0.267843,-0.267843 -0.267843,-0.702358 0,-0.970201 0.267843,-0.267843 0.702358,-0.267843 0.970201,0zm1.45531 1.45531m1.65619 1.94041m-0.68598 0.68598m-1.94041 -1.65619m-0.284228 -1.94041m-0.685984 0.685984m-0.68598 -0.685984m0.68598 -0.68598"/>
+  </g>
+ </g>
+</svg>

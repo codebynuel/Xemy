@@ -13,7 +13,7 @@ require('./functions/db');
 
 const {
     CREDITS_FREE, PLAN_CREDITS,
-    COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE
+    COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE, COST_REMOVE_BG
 } = require('./functions/config');
 const authenticateRequest = require('./functions/middleware/auth');
 
@@ -43,11 +43,16 @@ const UPLOAD_DIR = path.join(TEMP_DIR, '_uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 app.use('/uploads', express.static(UPLOAD_DIR));
 
+const REMOVEBG_DIR = path.join(TEMP_DIR, '_removebg');
+if (!fs.existsSync(REMOVEBG_DIR)) fs.mkdirSync(REMOVEBG_DIR, { recursive: true });
+app.use('/removebg', express.static(REMOVEBG_DIR));
+
 // ---------------------------------------------------------
 // Routes
 // ---------------------------------------------------------
 app.use('/api/auth', require('./functions/routes/auth'));
 app.use('/api/3d-model-generator', require('./functions/routes/3d-model-generator'));
+app.use('/api/remove-bg', require('./functions/routes/remove-bg'));
 
 // Shared credit balance endpoint
 app.get('/api/credits', async (req, res) => {
@@ -66,7 +71,7 @@ app.get('/api/credits', async (req, res) => {
         credits: user.credits,
         plan: user.plan,
         creditsResetAt: user.creditsResetAt,
-        costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D, texture: COST_TEXTURE }
+        costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D, texture: COST_TEXTURE, removeBg: COST_REMOVE_BG }
     });
 });
 

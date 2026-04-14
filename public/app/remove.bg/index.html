@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Xemy - Background Remover</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed-dim":"#00deec","secondary":"#00eefc","on-secondary":"#005359",
+                        "on-primary-fixed":"#000000","background":"#0e0e10","secondary-fixed":"#00eefc",
+                        "inverse-on-surface":"#565557","tertiary-container":"#ff05e5","tertiary-fixed":"#ff85e4",
+                        "inverse-surface":"#fcf8fb","surface":"#0e0e10","surface-bright":"#2c2c2f",
+                        "surface-container":"#19191c","surface-variant":"#262528","on-error":"#490013",
+                        "surface-tint":"#cf96ff","on-background":"#f9f5f8","surface-dim":"#0e0e10",
+                        "on-surface-variant":"#adaaad","surface-container-lowest":"#000000","error":"#ff6e84",
+                        "tertiary-fixed-dim":"#ff68e3","outline":"#767577","surface-container-low":"#131315",
+                        "surface-container-highest":"#262528","on-tertiary-fixed":"#33002d",
+                        "on-tertiary-fixed-variant":"#6d0061","on-surface":"#f9f5f8",
+                        "on-primary-container":"#37005f","error-dim":"#d73357","outline-variant":"#48474a",
+                        "surface-container-high":"#1f1f22","on-secondary-fixed-variant":"#005e64",
+                        "on-tertiary":"#42003a","primary":"#cf96ff","primary-fixed":"#c683ff",
+                        "error-container":"#a70138","primary-dim":"#a533ff","tertiary-dim":"#ff59e3",
+                        "on-primary":"#480079","tertiary":"#ff59e3","on-tertiary-container":"#1b0017",
+                        "inverse-primary":"#8d00e6","on-secondary-fixed":"#003f43",
+                        "on-primary-fixed-variant":"#450074","primary-fixed-dim":"#bc6fff",
+                        "secondary-container":"#006970","on-secondary-container":"#e3fdff",
+                        "on-error-container":"#ffb2b9","primary-container":"#c683ff","secondary-dim":"#00deec",
+                        "lime":"#b8f147"
+                    },
+                    borderRadius: { DEFAULT:"0.25rem", lg:"0.5rem", xl:"0.75rem", full:"9999px" },
+                    fontFamily: { headline:["Space Grotesk"], body:["Inter"], label:["Manrope"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+        .panel-scroll::-webkit-scrollbar { width: 4px; }
+        .panel-scroll::-webkit-scrollbar-track { background: transparent; }
+        .panel-scroll::-webkit-scrollbar-thumb { background: #48474a; border-radius: 2px; }
+        .panel-scroll::-webkit-scrollbar-thumb:hover { background: #767577; }
+        #icon-rail { width: 56px; transition: width 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+        #icon-rail:hover { width: 200px; }
+        #icon-rail:hover ~ #app-layout { margin-left: 200px; }
+        /* Checkerboard pattern for transparency */
+        .checkerboard {
+            background-image: linear-gradient(45deg, #2a2a2d 25%, transparent 25%),
+                              linear-gradient(-45deg, #2a2a2d 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, #2a2a2d 75%),
+                              linear-gradient(-45deg, transparent 75%, #2a2a2d 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+            background-color: #1f1f22;
+        }
+        /* Slider for before/after comparison */
+        .compare-container { position: relative; overflow: hidden; cursor: col-resize; user-select: none; }
+        .compare-container img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .compare-overlay { position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; }
+        .compare-overlay img { position: absolute; top: 0; left: 0; width: var(--full-width); height: 100%; object-fit: contain; }
+        .compare-handle { position: absolute; top: 0; height: 100%; width: 3px; background: #b8f147; cursor: col-resize; z-index: 10; }
+        .compare-handle::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; border-radius: 50%; background: #b8f147; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="icon-rail" class="group fixed left-0 top-0 h-screen flex flex-col py-5 px-2 bg-[#111113] border-r border-outline-variant/10 z-50">
+        <div class="flex items-center gap-3 px-1.5 mb-6">
+            <div class="w-9 h-9 min-w-[36px] rounded-xl bg-gradient-to-br from-[#b8f147] to-[#8bc926] flex items-center justify-center">
+                <span class="text-black font-bold text-sm font-headline">X</span>
+            </div>
+            <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-base font-bold bg-gradient-to-br from-[#b8f147] to-[#8bc926] bg-clip-text text-transparent font-headline">Xemy</span>
+        </div>
+        <nav class="flex flex-col gap-1 flex-1">
+            <a href="/app/3d.model.creator/" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">view_in_ar</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">3D Model Creator</span>
+            </a>
+            <a href="/app/remove.bg/" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-lime bg-lime/10 transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">content_cut</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Remove Background</span>
+            </a>
+        </nav>
+        <div class="flex flex-col gap-1">
+            <a href="#" class="flex items-center gap-3 px-2 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-xl min-w-[24px]">settings</span>
+                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium font-label">Settings</span>
+            </a>
+            <div class="flex items-center gap-3 px-2 py-2 mt-1">
+                <div class="w-8 h-8 min-w-[32px] rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20 cursor-pointer">
+                    <span id="user-initials" class="text-[10px] font-bold text-lime">?</span>
+                </div>
+                <span id="sidebar-user-name" class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-[180ms] text-xs font-medium text-on-surface truncate"></span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Layout -->
+    <div id="app-layout" class="flex flex-col h-screen ml-14 transition-[margin-left] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]">
+
+        <!-- Top Header -->
+        <header class="h-12 min-h-[48px] flex items-center justify-between px-5 bg-[#111113] border-b border-outline-variant/10 z-40">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lime text-lg">content_cut</span>
+                    <span class="text-sm font-headline font-bold text-on-surface">Background Remover</span>
+                </div>
+                <nav class="flex items-center gap-5 text-xs font-label">
+                    <a class="text-on-surface-variant hover:text-on-surface transition-colors" href="/app/3d.model.creator/">3D Creator</a>
+                    <a class="text-lime" href="/app/remove.bg/">Remove BG</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lime/10 border border-lime/20">
+                    <span class="material-symbols-outlined text-lime text-sm">token</span>
+                    <span id="credit-balance" class="text-xs font-bold text-lime font-label">—</span>
+                </div>
+                <button id="logout-btn" class="text-on-surface-variant hover:text-on-surface transition-colors" title="Logout"><span class="material-symbols-outlined text-lg">logout</span></button>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- Left Panel — Upload + Controls -->
+            <aside class="w-80 min-w-[320px] flex flex-col bg-[#131315] border-r border-outline-variant/10">
+                <div class="flex-1 overflow-y-auto panel-scroll px-5 pb-4 pt-5 space-y-5">
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 block">Upload Image</label>
+                        <div id="drop-zone" class="rounded-xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[200px] border-2 border-dashed border-[#48474a] transition-all duration-200 hover:border-lime hover:bg-lime/5 [&.dragover]:border-lime [&.dragover]:bg-lime/5">
+                            <div id="preview-container" class="hidden w-full">
+                                <img id="image-preview" class="rounded-lg max-h-48 mx-auto object-contain" />
+                                <button id="clear-btn" class="mt-2 text-[10px] text-error hover:text-error-dim mx-auto block">Remove image</button>
+                            </div>
+                            <div id="upload-prompt" class="flex flex-col items-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-on-surface-variant/40">add_photo_alternate</span>
+                                <span class="text-xs text-on-surface-variant/60 font-label">Click / Drag & Drop / Paste Image</span>
+                                <span class="text-[10px] text-on-surface-variant/30 font-label">Supported: .png, .jpg, .jpeg, .webp &middot; Max 20MB</span>
+                            </div>
+                            <input id="file-input" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" />
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-surface-container/80 border border-outline-variant/10">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-on-surface-variant">schedule</span>
+                            <span class="text-[11px] text-on-surface-variant font-label">~10 sec</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-lime">token</span>
+                            <span id="cost-label" class="text-[11px] text-lime font-bold font-label">5 credits</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-outline-variant/10 space-y-3">
+                    <button id="process-btn" disabled
+                        class="w-full shadow-[0_0_20px_rgba(184,241,71,0.25)] px-6 py-4 rounded-xl bg-gradient-to-r from-lime to-[#8bc926] text-black font-bold text-sm tracking-tight flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                        <span class="material-symbols-outlined text-lg">auto_awesome</span>
+                        Remove Background
+                    </button>
+                    <div class="flex justify-center">
+                        <div class="px-3 py-1 rounded-full bg-surface-container/80 border border-outline-variant/10 flex items-center gap-2">
+                            <div id="status-dot" class="w-1.5 h-1.5 rounded-full bg-lime animate-pulse"></div>
+                            <span id="status-text" class="text-[10px] font-label text-on-surface-variant">Upload an image to start</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center Viewport — Result Display -->
+            <section class="flex-1 relative overflow-hidden">
+                <div id="viewport" class="absolute inset-0 checkerboard flex items-center justify-center">
+                    <!-- Empty State -->
+                    <div id="empty-state" class="flex flex-col items-center gap-3 opacity-30">
+                        <span class="material-symbols-outlined text-5xl text-on-surface-variant">content_cut</span>
+                        <span class="text-sm text-on-surface-variant font-label">Upload an image to remove its background</span>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loader" class="hidden absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-20">
+                        <div class="flex flex-col items-center gap-3">
+                            <svg class="animate-spin w-8 h-8 text-lime" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span class="text-xs text-on-surface-variant font-label">Removing background...</span>
+                        </div>
+                    </div>
+
+                    <!-- Result: Before/After Compare -->
+                    <div id="result-view" class="hidden absolute inset-0">
+                        <!-- Compare slider -->
+                        <div id="compare-container" class="compare-container w-full h-full">
+                            <img id="result-img" class="w-full h-full" />
+                            <div id="compare-overlay" class="compare-overlay">
+                                <img id="original-overlay" />
+                            </div>
+                            <div id="compare-handle" class="compare-handle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Toolbar -->
+                <div id="toolbar" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface-container-highest/80 backdrop-blur-md rounded-full border border-outline-variant/20 p-1.5 z-10">
+                    <button id="btn-compare" class="px-3 py-2 bg-lime/20 rounded-full transition-colors text-lime text-xs font-label font-medium flex items-center gap-1.5" title="Compare">
+                        <span class="material-symbols-outlined text-lg">compare</span>
+                        Compare
+                    </button>
+                    <div class="w-px h-4 bg-outline-variant/20"></div>
+                    <button id="btn-result-only" class="px-3 py-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface text-xs font-label font-medium flex items-center gap-1.5" title="Result Only">
+                        <span class="material-symbols-outlined text-lg">image</span>
+                        Result
+                    </button>
+                    <div class="w-px h-4 bg-outline-variant/20"></div>
+                    <button id="btn-download" class="px-3 py-2.5 bg-lime/20 hover:bg-lime/30 rounded-full transition-colors text-lime text-xs font-label font-medium flex items-center gap-1.5" title="Download PNG">
+                        <span class="material-symbols-outlined text-lg">download</span>
+                        Download
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Panel — History -->
+            <aside class="w-72 min-w-[288px] flex flex-col bg-[#131315] border-l border-outline-variant/10">
+                <div class="px-5 pt-5 pb-3">
+                    <h2 class="text-sm font-bold font-headline tracking-tight text-on-surface">Recent Results</h2>
+                </div>
+                <div id="history-list" class="flex-1 overflow-y-auto panel-scroll px-5 pb-5 space-y-2">
+                    <div id="history-empty" class="flex flex-col items-center justify-center h-full opacity-40">
+                        <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">content_cut</span>
+                        <span class="text-xs text-on-surface-variant font-label text-center">No results yet.<br/>Remove a background to get started!</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

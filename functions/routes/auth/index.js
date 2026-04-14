@@ -2,7 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Models = require('../../models');
-const { CREDITS_FREE, PLAN_CREDITS, COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE } = require('../../config');
+const { CREDITS_FREE, PLAN_CREDITS, COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE, COST_REMOVE_BG } = require('../../config');
 
 router.post('/register', async (req, res) => {
     try {
@@ -71,7 +71,7 @@ router.get('/verify', async (req, res) => {
             credits: user.credits,
             plan: user.plan,
             creditsResetAt: user.creditsResetAt,
-            costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D, texture: COST_TEXTURE }
+            costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D, texture: COST_TEXTURE, removeBg: COST_REMOVE_BG }
         });
     } catch (error) {
         res.status(401).json({ authenticated: false });

@@ -6,6 +6,7 @@ const COST_TEXT_TO_3D        = parseInt(process.env.COST_TEXT_TO_3D)        || 5
 const COST_IMAGE_TO_3D       = parseInt(process.env.COST_IMAGE_TO_3D)      || 50;
 const COST_MULTI_IMAGE_TO_3D = parseInt(process.env.COST_MULTI_IMAGE_TO_3D) || 75;
 const COST_TEXTURE           = parseInt(process.env.COST_TEXTURE)           || 15;
+const COST_REMOVE_BG         = parseInt(process.env.COST_REMOVE_BG)         || 5;
 
 const PLAN_CREDITS = { free: CREDITS_FREE, starter: CREDITS_STARTER, pro: CREDITS_PRO, enterprise: Infinity };
 
@@ -14,7 +15,7 @@ const LOCAL_URL  = process.env.LOCAL_URL;
 
 module.exports = {
     CREDITS_FREE, CREDITS_STARTER, CREDITS_PRO,
-    COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE,
+    COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE, COST_REMOVE_BG,
     PLAN_CREDITS,
     PUBLIC_URL, LOCAL_URL
 };
