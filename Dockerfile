@@ -14,14 +14,24 @@ WORKDIR /app/TripoSR
 # Upgrade pip and setuptools (needed for torchmcubes build)
 RUN pip install --upgrade pip "setuptools>=49.6.0"
 
-# Pin NumPy <2 to avoid incompatibility with PyTorch compiled against NumPy 1.x
-RUN pip install "numpy<2"
-
-# Install TripoSR dependencies (much lighter than TRELLIS)
-RUN pip install pillow transformers trimesh rembg onnxruntime einops omegaconf pytorch-lightning huggingface_hub
+# Install TripoSR deps with PINNED versions from its requirements.txt
+RUN pip install \
+    "omegaconf==2.3.0" \
+    "Pillow==10.1.0" \
+    "einops==0.7.0" \
+    "transformers==4.35.0" \
+    "trimesh==4.0.5" \
+    "accelerate==0.29.3" \
+    "rembg" \
+    "huggingface_hub" \
+    "pytorch-lightning" \
+    "onnxruntime"
 
 # Install torchmcubes from source (TripoSR's marching cubes dependency)
 RUN pip install git+https://github.com/tatsy/torchmcubes.git
+
+# Force numpy<2 AFTER all other deps so transitive installs can't override it
+RUN pip install "numpy<2" --force-reinstall
 
 # Install RunPod SDK
 RUN pip install runpod requests
