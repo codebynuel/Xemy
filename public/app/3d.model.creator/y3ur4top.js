@@ -16,6 +16,7 @@ let generations = [];
 let userCredits = 0;
 let creditCosts = { text: 50, image: 50, multiImage: 75 };
 let currentImgMode = 'single'; // 'single' or 'multi'
+let textureUnlocked = false; // whether current model's texture has been purchased
 
 // --- Boot ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -89,9 +90,10 @@ function initSocketio() {
         setStatus('busy', messages[status] || `Status: ${status}`);
     });
 
-    socket.on('generation_complete', ({ modelUrl, generationId, prompt, name, thumbnail, credits }) => {
+    socket.on('generation_complete', ({ modelUrl, generationId, prompt, name, thumbnail, credits, textureApplied }) => {
         currentModelUrl = modelUrl;
         currentGenerationId = generationId;
+        textureUnlocked = !!textureApplied;
         if (credits !== undefined) { userCredits = credits; updateCreditUI(); }
         setStatus('loading', 'Downloading model...');
         loadModel(modelUrl, () => {
@@ -193,7 +195,8 @@ function loadModel(url, onComplete) {
             updateModelStats();
             document.getElementById('viewport-empty')?.classList.add('hidden');
             document.getElementById('model-stats')?.classList.remove('hidden');
-            document.getElementById('apply-texture-btn')?.classList.remove('hidden');
+            textureUnlocked = false;
+            updateApplyTextureBtn();
 
             setStatus('ready', 'Ready to generate');
             setForgeState('idle');
@@ -211,14 +214,27 @@ function loadModel(url, onComplete) {
     );
 }
 
+function updateApplyTextureBtn() {
+    const btn = document.getElementById('apply-texture-btn');
+    if (!btn) return;
+    if (!currentModel) { btn.classList.add('hidden'); return; }
+    if (textureUnlocked || currentViewMode === 'textured') {
+        btn.classList.add('hidden');
+    } else {
+        btn.classList.remove('hidden');
+        const cost = creditCosts.texture || 15;
+        btn.innerHTML = `<span class="material-symbols-outlined text-base">texture</span> Apply Texture <span class="text-[10px] opacity-70">(${cost} credits)</span>`;
+    }
+}
+
 // --- View Modes ---
 function applyViewMode(mode) {
     if (!currentModel) return;
+    // Block textured mode unless texture is unlocked
+    if (mode === 'textured' && !textureUnlocked) return;
     currentViewMode = mode;
     updateViewModeButtons();
-
-    const applyBtn = document.getElementById('apply-texture-btn');
-    if (applyBtn) applyBtn.classList.toggle('hidden', mode === 'textured');
+    updateApplyTextureBtn();
 
     currentModel.traverse(child => {
         if (!child.isMesh) return;
@@ -481,7 +497,7 @@ function bindImageUpload() {
             for (const file of filesToUpload) {
                 const formData = new FormData();
                 formData.append('image', file);
-                const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
+                const uploadRes = await fetch('/api/3d-model-generator/upload-image', { method: 'POST', body: formData });
                 if (!uploadRes.ok) {
                     const err = await uploadRes.json().catch(() => ({}));
                     throw new Error(err.error || 'Upload failed');
@@ -496,7 +512,7 @@ function bindImageUpload() {
                 ? { mode: 'image', imageUrls: uploadedUrls, name: imgName, sessionId }
                 : { mode: 'image', imageUrl: uploadedUrls[0], name: imgName, sessionId };
 
-            const res = await fetch('/api/generate', {
+            const res = await fetch('/api/3d-model-generator/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
@@ -541,7 +557,7 @@ async function forge() {
     setStatus('busy', 'Submitting to forge...');
 
     try {
-        const res = await fetch('/api/generate', {
+        const res = await fetch('/api/3d-model-generator/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mode: 'text', prompt, name, sessionId }),
@@ -597,11 +613,47 @@ function bindViewportControls() {
 
     // View mode buttons
     document.querySelectorAll('.view-mode-btn').forEach(btn => {
-        btn.addEventListener('click', () => applyViewMode(btn.dataset.view));
+        btn.addEventListener('click', () => {
+            if (btn.dataset.view === 'textured' && !textureUnlocked) {
+                document.getElementById('apply-texture-btn')?.click();
+                return;
+            }
+            applyViewMode(btn.dataset.view);
+        });
     });
 
-    document.getElementById('apply-texture-btn')?.addEventListener('click', () => {
-        applyViewMode('textured');
+    document.getElementById('apply-texture-btn')?.addEventListener('click', async () => {
+        if (textureUnlocked) {
+            applyViewMode('textured');
+            return;
+        }
+        if (!currentGenerationId) return;
+
+        const cost = creditCosts.texture || 15;
+        if (userCredits < cost) {
+            setStatus('error', `Insufficient credits (need ${cost}, have ${userCredits})`);
+            return;
+        }
+
+        const btn = document.getElementById('apply-texture-btn');
+        const origHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span> Applying...';
+
+        try {
+            const res = await fetch(`/api/3d-model-generator/generations/${currentGenerationId}/apply-texture`, { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to apply texture');
+
+            if (data.credits !== undefined) { userCredits = data.credits; updateCreditUI(); }
+            textureUnlocked = true;
+            applyViewMode('textured');
+        } catch (err) {
+            setStatus('error', err.message);
+            btn.innerHTML = origHTML;
+        } finally {
+            btn.disabled = false;
+        }
     });
 
     document.getElementById('ctrl-screenshot').addEventListener('click', () => {
@@ -628,7 +680,7 @@ function bindViewportControls() {
 // --- Generation History ---
 async function loadGenerations() {
     try {
-        const res = await fetch('/api/generations');
+        const res = await fetch('/api/3d-model-generator/generations');
         if (!res.ok) return;
         generations = await res.json();
         renderHistory(generations);
@@ -693,6 +745,7 @@ function createHistoryCard(gen) {
         if (e.target.closest('.delete-gen-btn')) return;
         currentModelUrl = gen.modelUrl;
         currentGenerationId = gen._id;
+        textureUnlocked = !!gen.textureApplied;
         // Highlight active card
         document.querySelectorAll('.gen-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
@@ -735,7 +788,7 @@ function addToHistoryPanel(gen) {
 
 async function deleteGeneration(id) {
     try {
-        const res = await fetch(`/api/generations/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/3d-model-generator/generations/${id}`, { method: 'DELETE' });
         if (!res.ok) return;
         // Remove from local array
         generations = generations.filter(g => g._id !== id);
