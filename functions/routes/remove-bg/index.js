@@ -1,3 +1,5 @@
+const REMOVE_BG_URI = process.env.REMOVE_BG_URI;
+
 const router = require('express').Router();
 const fs = require('fs');
 const path = require('path');
@@ -64,7 +66,7 @@ router.post('/process', async (req, res) => {
 
     try {
         // Submit to fal.ai queue
-        const submitRes = await fetch('https://queue.fal.run/fal-ai/bria/background/remove', {
+        const submitRes = await fetch(REMOVE_BG_URI, {
             method: 'POST',
             headers: {
                 'Authorization': `Key ${FAL_KEY}`,
@@ -81,10 +83,11 @@ router.post('/process', async (req, res) => {
         }
 
         const { request_id, status_url, response_url } = submitData;
+        console.log('Remove BG submitted:', { request_id, status_url, response_url });
         if (!request_id || !status_url || !response_url) {
             // Refund on queue failure
             await User.updateOne({ _id: user._id }, { $inc: { credits: COST_REMOVE_BG, totalCreditsUsed: -COST_REMOVE_BG } });
-            return res.status(500).json({ error: 'Failed to queue job on fal.ai' });
+            return res.status(500).json({ error: 'Failed to remove background' });
         }
 
         // Poll for completion
@@ -95,6 +98,7 @@ router.post('/process', async (req, res) => {
 
             if (pollData.status === 'COMPLETED') break;
             if (pollData.status === 'FAILED' || pollData.error) {
+                console.error('Remove BG failed:', pollData.error || 'Unknown error');
                 await User.updateOne({ _id: user._id }, { $inc: { credits: COST_REMOVE_BG, totalCreditsUsed: -COST_REMOVE_BG } });
                 return res.status(500).json({ error: 'Background removal failed' });
             }

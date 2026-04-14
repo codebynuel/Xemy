@@ -115,9 +115,10 @@ router.post('/generate', async (req, res) => {
         // Submit to fal.ai TRELLIS (single or multi-image)
         io.to(safeSessionId).emit('generation_status', { status: 'IN_QUEUE' });
 
+        const TRELLIS_URI = process.env.TRELLIS_URI;
         const trellisEndpoint = isMultiImage
-            ? 'https://queue.fal.run/fal-ai/trellis/multi-image'
-            : 'https://queue.fal.run/fal-ai/trellis';
+            ? `${TRELLIS_URI}/multi-image`
+            : TRELLIS_URI;
         const trellisInput = isMultiImage
             ? { image_urls: imageUrls }
             : { image_url: referenceImageUrl || (imageUrls && imageUrls[0]) };
@@ -138,7 +139,7 @@ router.post('/generate', async (req, res) => {
         if (!requestId || !statusUrl || !responseUrl) {
             await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
             await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
-            return res.status(500).json({ error: 'Failed to queue job on fal.ai' });
+            return res.status(500).json({ error: 'Failed to generate model' });
         }
 
         res.status(200).json({ jobId: requestId, status: 'IN_QUEUE', generationId: generation._id, credits: deducted.credits });

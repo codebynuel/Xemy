@@ -65,6 +65,14 @@
         .compare-overlay img { position: absolute; top: 0; left: 0; width: var(--full-width); height: 100%; object-fit: contain; }
         .compare-handle { position: absolute; top: 0; height: 100%; width: 3px; background: #b8f147; cursor: col-resize; z-index: 10; }
         .compare-handle::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; border-radius: 50%; background: #b8f147; display: flex; align-items: center; justify-content: center; }
+
+        /* Brush range sliders */
+        .brush-slider { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: #48474a; outline: none; }
+        .brush-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #b8f147; cursor: pointer; border: 2px solid #0e0e10; }
+        .brush-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #b8f147; cursor: pointer; border: 2px solid #0e0e10; }
+
+        /* Edit mode canvas cursor */
+        #edit-container { cursor: none; }
     </style>
 </head>
 
@@ -108,6 +116,106 @@
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-lime">token</span>
                             <span id="cost-label" class="text-[11px] text-lime font-bold font-label">5 credits</span>
+                        </div>
+                    </div>
+
+                    <!-- Brush Tools (visible in edit mode) -->
+                    <div id="brush-tools" class="hidden space-y-4">
+                        <div>
+                            <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-2 block">Brush Tool</label>
+                            <div class="flex gap-1.5">
+                                <button id="tool-eraser" class="flex-1 px-3 py-2.5 rounded-xl text-xs font-label font-medium flex items-center justify-center gap-1.5 transition-colors bg-lime/20 text-lime border border-lime/30">
+                                    <span class="material-symbols-outlined text-base">ink_eraser</span>
+                                    Eraser
+                                </button>
+                                <button id="tool-restorer" class="flex-1 px-3 py-2.5 rounded-xl text-xs font-label font-medium flex items-center justify-center gap-1.5 transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">
+                                    <span class="material-symbols-outlined text-base">ink_pen</span>
+                                    Restorer
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-[10px] text-on-surface-variant/70 font-label">Size</label>
+                                    <span id="brush-size-val" class="text-[10px] text-on-surface-variant font-label font-medium">30px</span>
+                                </div>
+                                <input id="brush-size" type="range" min="1" max="200" value="30" class="brush-slider w-full" />
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-[10px] text-on-surface-variant/70 font-label">Hardness</label>
+                                    <span id="brush-hardness-val" class="text-[10px] text-on-surface-variant font-label font-medium">80%</span>
+                                </div>
+                                <input id="brush-hardness" type="range" min="0" max="100" value="80" class="brush-slider w-full" />
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-[10px] text-on-surface-variant/70 font-label">Opacity</label>
+                                    <span id="brush-opacity-val" class="text-[10px] text-on-surface-variant font-label font-medium">100%</span>
+                                </div>
+                                <input id="brush-opacity" type="range" min="10" max="100" value="100" class="brush-slider w-full" />
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-on-surface-variant/50 font-label">
+                            <span class="material-symbols-outlined text-xs">keyboard</span>
+                            <span>[E] Eraser &middot; [R] Restorer &middot; [ ] Size &middot; Ctrl+Z Undo</span>
+                        </div>
+                    </div>
+
+                    <!-- Background Tools (visible in edit mode) -->
+                    <div id="bg-tools" class="hidden space-y-3">
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide block">Background</label>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button data-bg="transparent" class="bg-mode-btn active-bg-mode px-2 py-2 rounded-xl text-[10px] font-label font-medium flex flex-col items-center gap-1 transition-colors bg-lime/20 text-lime border border-lime/30">
+                                <span class="material-symbols-outlined text-base">grid_on</span>
+                                None
+                            </button>
+                            <button data-bg="solid" class="bg-mode-btn px-2 py-2 rounded-xl text-[10px] font-label font-medium flex flex-col items-center gap-1 transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">
+                                <span class="material-symbols-outlined text-base">format_color_fill</span>
+                                Solid
+                            </button>
+                            <button data-bg="gradient" class="bg-mode-btn px-2 py-2 rounded-xl text-[10px] font-label font-medium flex flex-col items-center gap-1 transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">
+                                <span class="material-symbols-outlined text-base">gradient</span>
+                                Gradient
+                            </button>
+                            <button data-bg="image" class="bg-mode-btn px-2 py-2 rounded-xl text-[10px] font-label font-medium flex flex-col items-center gap-1 transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">
+                                <span class="material-symbols-outlined text-base">wallpaper</span>
+                                Image
+                            </button>
+                        </div>
+                        <!-- Solid options -->
+                        <div id="bg-solid-opts" class="hidden flex items-center gap-2">
+                            <label class="text-[10px] text-on-surface-variant/70 font-label">Color</label>
+                            <input id="bg-solid-color" type="color" value="#ffffff" class="w-8 h-8 rounded-lg border border-outline-variant/20 cursor-pointer bg-transparent" />
+                        </div>
+                        <!-- Gradient options -->
+                        <div id="bg-gradient-opts" class="hidden space-y-2">
+                            <div class="flex items-center gap-2">
+                                <label class="text-[10px] text-on-surface-variant/70 font-label min-w-[30px]">From</label>
+                                <input id="bg-grad-color1" type="color" value="#667eea" class="w-8 h-8 rounded-lg border border-outline-variant/20 cursor-pointer bg-transparent" />
+                                <label class="text-[10px] text-on-surface-variant/70 font-label min-w-[16px]">To</label>
+                                <input id="bg-grad-color2" type="color" value="#764ba2" class="w-8 h-8 rounded-lg border border-outline-variant/20 cursor-pointer bg-transparent" />
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="text-[10px] text-on-surface-variant/70 font-label">Angle</label>
+                                    <span id="bg-grad-angle-val" class="text-[10px] text-on-surface-variant font-label font-medium">135°</span>
+                                </div>
+                                <input id="bg-grad-angle" type="range" min="0" max="360" value="135" class="brush-slider w-full" />
+                            </div>
+                        </div>
+                        <!-- Image options -->
+                        <div id="bg-image-opts" class="hidden space-y-2">
+                            <div id="bg-image-drop" class="rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer border border-dashed border-outline-variant/30 hover:border-lime/40 hover:bg-lime/5 transition-colors">
+                                <span class="material-symbols-outlined text-sm text-on-surface-variant/40">add_photo_alternate</span>
+                                <span class="text-[10px] text-on-surface-variant/60 font-label">Upload background image</span>
+                            </div>
+                            <input id="bg-image-input" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" />
+                            <div class="flex gap-1.5">
+                                <button id="bg-fit-cover" class="flex-1 px-2 py-1.5 rounded-lg text-[10px] font-label font-medium transition-colors bg-lime/20 text-lime border border-lime/30">Cover</button>
+                                <button id="bg-fit-contain" class="flex-1 px-2 py-1.5 rounded-lg text-[10px] font-label font-medium transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">Contain</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -157,6 +265,11 @@
                             </div>
                             <div id="compare-handle" class="compare-handle"></div>
                         </div>
+                        <!-- Edit Mode Canvas Stack -->
+                        <div id="edit-container" class="hidden absolute inset-0">
+                            <canvas id="edit-canvas" class="absolute inset-0 w-full h-full"></canvas>
+                            <canvas id="cursor-canvas" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index:2"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -170,6 +283,16 @@
                     <button id="btn-result-only" class="px-3 py-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface text-xs font-label font-medium flex items-center gap-1.5" title="Result Only">
                         <span class="material-symbols-outlined text-lg">image</span>
                         Result
+                    </button>
+                    <div class="w-px h-4 bg-outline-variant/20"></div>
+                    <button id="btn-edit" class="px-3 py-2 hover:bg-lime/15 rounded-full transition-colors text-on-surface-variant hover:text-on-surface text-xs font-label font-medium flex items-center gap-1.5" title="Edit Mask">
+                        <span class="material-symbols-outlined text-lg">brush</span>
+                        Edit
+                    </button>
+                    <div id="edit-toolbar-sep" class="hidden w-px h-4 bg-outline-variant/20"></div>
+                    <button id="btn-apply" class="hidden px-3 py-2 bg-lime/20 hover:bg-lime/30 rounded-full transition-colors text-lime text-xs font-label font-medium flex items-center gap-1.5" title="Apply Edits">
+                        <span class="material-symbols-outlined text-lg">check</span>
+                        Apply
                     </button>
                     <div class="w-px h-4 bg-outline-variant/20"></div>
                     <button id="btn-download" class="px-3 py-2.5 bg-lime/20 hover:bg-lime/30 rounded-full transition-colors text-lime text-xs font-label font-medium flex items-center gap-1.5" title="Download PNG">
