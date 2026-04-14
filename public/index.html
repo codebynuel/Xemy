@@ -5,6 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link rel="icon" href="/assets/brand_assets/logo.svg">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@400;500;600&amp;display=swap"
@@ -220,8 +221,8 @@
     <!-- TopNavBar: wrapper is pointer-events-none so full-width invisible area doesn't block clicks -->
     <div id="navbar-wrapper" class="fixed top-0 w-full z-50 flex justify-center">
         <nav id="navbar" class="flex justify-between items-center">
-            <div class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 font-headline tracking-tight flex-shrink-0">
-                Xemy
+            <div class="flex-shrink-0">
+                <img src="/assets/brand_assets/logo.svg" alt="Xemy" class="h-7 w-auto">
             </div>
             <div class="hidden md:flex items-center gap-8">
                 <a class="text-purple-400 border-b-2 border-purple-400 pb-1 font-headline text-sm uppercase tracking-wider" href="#">Models</a>
@@ -530,7 +531,9 @@
         class="bg-[#0e0e10] w-full py-12 px-8 border-t border-white/5 tonal-shift-bg-surface-container-low flat no shadows">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
             <div class="col-span-2 md:col-span-1">
-                <div class="text-lg font-bold text-white font-headline mb-6">Xemy</div>
+                <div class="mb-6">
+                    <img src="/assets/brand_assets/logo.svg" alt="Xemy" class="h-6 w-auto">
+                </div>
                 <p class="font-['Inter'] text-sm text-slate-400 mb-6 max-w-xs">The Ethereal Forge. Transforming human
                     intent into three-dimensional reality through neural synthesis.</p>
                 <div class="flex gap-4">
