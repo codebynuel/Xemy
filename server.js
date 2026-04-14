@@ -16,6 +16,7 @@ const {
     COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE, COST_REMOVE_BG
 } = require('./functions/config');
 const authenticateRequest = require('./functions/middleware/auth');
+const { User } = require('./functions/models');
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +53,7 @@ app.use('/removebg', express.static(REMOVEBG_DIR));
 // ---------------------------------------------------------
 app.use('/api/auth', require('./functions/routes/auth'));
 app.use('/api/3d-model-generator', require('./functions/routes/3d-model-generator'));
+
 app.use('/api/remove-bg', require('./functions/routes/remove-bg'));
 
 // Shared credit balance endpoint

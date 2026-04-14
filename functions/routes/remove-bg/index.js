@@ -1,4 +1,4 @@
-const REMOVE_BG_URI = process.env.REMOVE_BG_URI;
+const { fal } = require('@fal-ai/client');
 
 const router = require('express').Router();
 const fs = require('fs');
@@ -8,6 +8,8 @@ const multer = require('multer');
 const authenticateRequest = require('../../middleware/auth');
 const { User } = require('../../models');
 const { COST_REMOVE_BG, PUBLIC_URL } = require('../../config');
+
+fal.config({ credentials: () => process.env.FAL_KEY });
 
 const UPLOAD_DIR  = path.join(__dirname, '../../../temp_models/_uploads');
 const OUTPUT_DIR  = path.join(__dirname, '../../../temp_models/_removebg');
@@ -43,7 +45,7 @@ router.post('/upload', async (req, res) => {
     });
 });
 
-// Remove background via fal.ai bria
+// Remove background via fal.ai
 router.post('/process', async (req, res) => {
     const { imageUrl } = req.body;
     if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
@@ -51,8 +53,7 @@ router.post('/process', async (req, res) => {
     const user = await authenticateRequest(req);
     if (!user) return res.status(401).json({ error: 'Not authenticated' });
 
-    const FAL_KEY = process.env.FAL_KEY;
-    if (!FAL_KEY) return res.status(500).json({ error: 'FAL_KEY not configured' });
+    if (!process.env.FAL_KEY) return res.status(500).json({ error: 'FAL_KEY not configured' });
 
     // Atomic credit deduction
     const deducted = await User.findOneAndUpdate(
@@ -65,63 +66,27 @@ router.post('/process', async (req, res) => {
     }
 
     try {
-        // Submit to fal.ai queue
-        const submitRes = await fetch(REMOVE_BG_URI, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Key ${FAL_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ image_url: imageUrl })
+        const result = await fal.subscribe('fal-ai/imageutils/rembg', {
+            input: { image_url: imageUrl }
         });
-        const submitData = await submitRes.json();
 
-        // Handle synchronous response (result returned immediately)
-        if (submitData.image?.url) {
-            const resultUrl = await saveResultImage(submitData.image.url);
-            return res.json({ success: true, resultUrl, credits: deducted.credits });
-        }
-
-        const { request_id, status_url, response_url } = submitData;
-        console.log('Remove BG submitted:', { request_id, status_url, response_url });
-        if (!request_id || !status_url || !response_url) {
-            // Refund on queue failure
-            await User.updateOne({ _id: user._id }, { $inc: { credits: COST_REMOVE_BG, totalCreditsUsed: -COST_REMOVE_BG } });
-            return res.status(500).json({ error: 'Failed to remove background' });
-        }
-
-        // Poll for completion
-        for (let i = 0; i < 60; i++) {
-            await new Promise(r => setTimeout(r, 2000));
-            const pollRes = await fetch(status_url, { headers: { 'Authorization': `Key ${FAL_KEY}` } });
-            const pollData = await pollRes.json();
-
-            if (pollData.status === 'COMPLETED') break;
-            if (pollData.status === 'FAILED' || pollData.error) {
-                console.error('Remove BG failed:', pollData.error || 'Unknown error');
-                await User.updateOne({ _id: user._id }, { $inc: { credits: COST_REMOVE_BG, totalCreditsUsed: -COST_REMOVE_BG } });
-                return res.status(500).json({ error: 'Background removal failed' });
-            }
-        }
-
-        // Fetch result
-        const resultRes = await fetch(response_url, { headers: { 'Authorization': `Key ${FAL_KEY}` } });
-        const resultData = await resultRes.json();
-        const outputUrl = resultData.image?.url;
-
+        const outputUrl = result.data?.image?.url;
         if (!outputUrl) {
+            console.error('Remove BG: no image in result', result.data);
             await User.updateOne({ _id: user._id }, { $inc: { credits: COST_REMOVE_BG, totalCreditsUsed: -COST_REMOVE_BG } });
-            return res.status(500).json({ error: 'No output image returned' });
+            return res.status(500).json({ error: 'No output image returned', credits: deducted.credits + COST_REMOVE_BG });
         }
 
         const resultUrl = await saveResultImage(outputUrl);
+        console.log(`Remove BG complete → ${resultUrl}`);
+
         res.json({ success: true, resultUrl, credits: deducted.credits });
 
     } catch (err) {
         console.error('Remove BG error:', err);
-        // Refund on unexpected failure
         await User.updateOne({ _id: user._id }, { $inc: { credits: COST_REMOVE_BG, totalCreditsUsed: -COST_REMOVE_BG } });
-        res.status(500).json({ error: 'Background removal failed' });
+        const refunded = await User.findById(user._id);
+        res.status(500).json({ error: 'Background removal failed', credits: refunded?.credits });
     }
 });
 
@@ -137,3 +102,4 @@ async function saveResultImage(remoteUrl) {
 }
 
 module.exports = router;
+module.exports.saveResultImage = saveResultImage;

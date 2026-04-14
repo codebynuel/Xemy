@@ -7,7 +7,7 @@ async function generateImageFromText(prompt) {
     const FAL_KEY = process.env.FAL_KEY;
     if (!FAL_KEY) throw new Error('FAL_KEY not configured');
 
-    const submitRes = await fetch('https://queue.fal.run/fal-ai/flux/dev', {
+    const submitRes = await fetch(process.env.FLUX_URI, {
         method: 'POST',
         headers: {
             'Authorization': `Key ${FAL_KEY}`,
@@ -21,7 +21,7 @@ async function generateImageFromText(prompt) {
 
     const statusUrl = submitData.status_url;
     const responseUrl = submitData.response_url;
-    if (!statusUrl || !responseUrl) throw new Error('fal.ai did not return queue URLs');
+    if (!statusUrl || !responseUrl) throw new Error('ai did not return queue URLs');
 
     for (let i = 0; i < 60; i++) {
         await new Promise(r => setTimeout(r, 2000));
