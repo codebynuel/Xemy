@@ -8,7 +8,7 @@ router.get('/:tool', async (req, res) => {
     const user = await authenticateRequest(req);
     if (!user) return res.status(401).json({ error: 'Not authenticated' });
 
-    const validTools = ['removebg', 'upscaler', 'vectorize'];
+    const validTools = ['removebg', 'upscaler', 'vectorize', 'voicecloner'];
     const tool = req.params.tool;
     if (!validTools.includes(tool)) return res.status(400).json({ error: 'Invalid tool' });
 

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Xemy - Voice Cloner</title>
+    <link rel="icon" href="/assets/brand_assets/logo.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed-dim":"#00deec","secondary":"#00eefc","on-secondary":"#005359",
+                        "on-primary-fixed":"#000000","background":"#0e0e10","secondary-fixed":"#00eefc",
+                        "inverse-on-surface":"#565557","tertiary-container":"#ff05e5","tertiary-fixed":"#ff85e4",
+                        "inverse-surface":"#fcf8fb","surface":"#0e0e10","surface-bright":"#2c2c2f",
+                        "surface-container":"#19191c","surface-variant":"#262528","on-error":"#490013",
+                        "surface-tint":"#cf96ff","on-background":"#f9f5f8","surface-dim":"#0e0e10",
+                        "on-surface-variant":"#adaaad","surface-container-lowest":"#000000","error":"#ff6e84",
+                        "tertiary-fixed-dim":"#ff68e3","outline":"#767577","surface-container-low":"#131315",
+                        "surface-container-highest":"#262528","on-tertiary-fixed":"#33002d",
+                        "on-tertiary-fixed-variant":"#6d0061","on-surface":"#f9f5f8",
+                        "on-primary-container":"#37005f","error-dim":"#d73357","outline-variant":"#48474a",
+                        "surface-container-high":"#1f1f22","on-secondary-fixed-variant":"#005e64",
+                        "on-tertiary":"#42003a","primary":"#cf96ff","primary-fixed":"#c683ff",
+                        "error-container":"#a70138","primary-dim":"#a533ff","tertiary-dim":"#ff59e3",
+                        "on-primary":"#480079","tertiary":"#ff59e3","on-tertiary-container":"#1b0017",
+                        "inverse-primary":"#8d00e6","on-secondary-fixed":"#003f43",
+                        "on-primary-fixed-variant":"#450074","primary-fixed-dim":"#bc6fff",
+                        "secondary-container":"#006970","on-secondary-container":"#e3fdff",
+                        "on-error-container":"#ffb2b9","primary-container":"#c683ff","secondary-dim":"#00deec",
+                        "lime":"#b8f147"
+                    },
+                    borderRadius: { DEFAULT:"0.25rem", lg:"0.5rem", xl:"0.75rem", full:"9999px" },
+                    fontFamily: { headline:["Space Grotesk"], body:["Inter"], label:["Manrope"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+        .panel-scroll::-webkit-scrollbar { width: 4px; }
+        .panel-scroll::-webkit-scrollbar-track { background: transparent; }
+        .panel-scroll::-webkit-scrollbar-thumb { background: #48474a; border-radius: 2px; }
+        .panel-scroll::-webkit-scrollbar-thumb:hover { background: #767577; }
+
+        /* Audio waveform animation */
+        @keyframes waveform {
+            0%, 100% { height: 4px; }
+            50% { height: 20px; }
+        }
+        .waveform-bar {
+            width: 3px;
+            background: #b8f147;
+            border-radius: 1.5px;
+            animation: waveform 1.2s ease-in-out infinite;
+        }
+
+        /* Recording pulse */
+        @keyframes rec-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .rec-pulse { animation: rec-pulse 1s ease-in-out infinite; }
+
+        /* Audio player range */
+        .audio-range { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: #48474a; outline: none; }
+        .audio-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #b8f147; cursor: pointer; border: 2px solid #0e0e10; }
+        .audio-range::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #b8f147; cursor: pointer; border: 2px solid #0e0e10; }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 overflow-hidden" data-page="voicecloner">
+
+    <div id="sidebar-mount"></div>
+    <script src="/app/shared/layout.js"></script>
+
+    <!-- Main Layout -->
+    <div id="app-layout" class="flex flex-col h-screen ml-14 transition-[margin-left] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]">
+
+        <div id="header-mount"></div>
+
+        <!-- Content -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- Left Panel — Controls -->
+            <aside class="w-80 min-w-[320px] flex flex-col bg-[#131315] border-r border-outline-variant/10">
+                <div class="flex-1 overflow-y-auto panel-scroll px-5 pb-4 pt-5 space-y-5">
+
+                    <!-- Reference Audio -->
+                    <div>
+                        <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 block">Reference Audio</label>
+
+                        <!-- Tabs: File / Record / URL -->
+                        <div class="flex gap-1 mb-3">
+                            <button id="tab-file" class="flex-1 px-2 py-2 rounded-xl text-[10px] font-label font-medium flex items-center justify-center gap-1 transition-colors bg-lime/20 text-lime border border-lime/30">
+                                <span class="material-symbols-outlined text-sm">upload_file</span>
+                                File
+                            </button>
+                            <button id="tab-record" class="flex-1 px-2 py-2 rounded-xl text-[10px] font-label font-medium flex items-center justify-center gap-1 transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">
+                                <span class="material-symbols-outlined text-sm">mic</span>
+                                Record
+                            </button>
+                            <button id="tab-url" class="flex-1 px-2 py-2 rounded-xl text-[10px] font-label font-medium flex items-center justify-center gap-1 transition-colors hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/15">
+                                <span class="material-symbols-outlined text-sm">link</span>
+                                URL
+                            </button>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div id="input-file" class="">
+                            <div id="drop-zone" class="rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer min-h-[100px] border-2 border-dashed border-[#48474a] transition-all duration-200 hover:border-lime hover:bg-lime/5 [&.dragover]:border-lime [&.dragover]:bg-lime/5">
+                                <div id="audio-preview" class="hidden w-full">
+                                    <div class="flex items-center gap-3 w-full">
+                                        <button id="preview-play" class="w-8 h-8 rounded-full bg-lime/20 flex items-center justify-center text-lime hover:bg-lime/30 transition-colors">
+                                            <span class="material-symbols-outlined text-sm">play_arrow</span>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div id="audio-filename" class="text-xs text-on-surface font-label truncate"></div>
+                                            <div id="audio-duration" class="text-[10px] text-on-surface-variant/60 font-label"></div>
+                                        </div>
+                                        <button id="clear-audio" class="text-error hover:text-error-dim transition-colors">
+                                            <span class="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="upload-prompt" class="flex flex-col items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-2xl text-on-surface-variant/40">audio_file</span>
+                                    <span class="text-[10px] text-on-surface-variant/60 font-label">Click or Drag & Drop audio file</span>
+                                    <span class="text-[9px] text-on-surface-variant/30 font-label">.mp3, .wav, .ogg, .webm, .m4a, .flac &middot; Max 20MB</span>
+                                </div>
+                                <input id="file-input" type="file" accept="audio/*" class="hidden" />
+                            </div>
+                        </div>
+
+                        <!-- Recorder -->
+                        <div id="input-record" class="hidden">
+                            <div class="rounded-xl p-5 bg-surface-container border border-outline-variant/10 flex flex-col items-center gap-3">
+                                <div id="rec-waveform" class="hidden flex items-center justify-center gap-1 h-8">
+                                    <div class="waveform-bar" style="animation-delay:0s"></div>
+                                    <div class="waveform-bar" style="animation-delay:0.1s"></div>
+                                    <div class="waveform-bar" style="animation-delay:0.2s"></div>
+                                    <div class="waveform-bar" style="animation-delay:0.3s"></div>
+                                    <div class="waveform-bar" style="animation-delay:0.15s"></div>
+                                    <div class="waveform-bar" style="animation-delay:0.25s"></div>
+                                    <div class="waveform-bar" style="animation-delay:0.05s"></div>
+                                </div>
+                                <div id="rec-idle-icon" class="text-on-surface-variant/40">
+                                    <span class="material-symbols-outlined text-3xl">mic</span>
+                                </div>
+                                <div id="rec-timer" class="text-xs font-label text-on-surface-variant font-medium tabular-nums">00:00</div>
+                                <div class="flex gap-2">
+                                    <button id="rec-start" class="px-4 py-2 rounded-xl bg-error/20 text-error border border-error/30 text-[10px] font-label font-medium flex items-center gap-1.5 hover:bg-error/30 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">fiber_manual_record</span>
+                                        Record
+                                    </button>
+                                    <button id="rec-stop" class="hidden px-4 py-2 rounded-xl bg-surface-container-high text-on-surface border border-outline-variant/15 text-[10px] font-label font-medium flex items-center gap-1.5 hover:bg-surface-bright transition-colors">
+                                        <span class="material-symbols-outlined text-sm">stop</span>
+                                        Stop
+                                    </button>
+                                </div>
+                                <div id="rec-result" class="hidden w-full">
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <button id="rec-play" class="w-8 h-8 rounded-full bg-lime/20 flex items-center justify-center text-lime hover:bg-lime/30 transition-colors">
+                                            <span class="material-symbols-outlined text-sm">play_arrow</span>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div class="text-xs text-on-surface font-label">Recording</div>
+                                            <div id="rec-duration" class="text-[10px] text-on-surface-variant/60 font-label"></div>
+                                        </div>
+                                        <button id="rec-clear" class="text-error hover:text-error-dim transition-colors">
+                                            <span class="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- URL Input -->
+                        <div id="input-url" class="hidden">
+                            <div class="flex gap-2">
+                                <input id="url-input" type="url" placeholder="Paste audio file URL..." class="flex-1 px-3 py-2.5 rounded-lg bg-surface-container border border-outline-variant/15 text-xs text-on-surface font-label placeholder:text-on-surface-variant/40 focus:outline-none focus:border-lime/40" />
+                                <button id="url-submit" class="px-3 py-2.5 rounded-lg bg-surface-container-high hover:bg-lime/10 border border-outline-variant/15 text-on-surface-variant hover:text-lime transition-colors" title="Load from URL">
+                                    <span class="material-symbols-outlined text-sm">link</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reference Text -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] text-on-surface-variant font-label tracking-wide">Reference Text <span class="text-on-surface-variant/40">(optional)</span></label>
+                        </div>
+                        <textarea id="ref-text" rows="2" maxlength="2000" placeholder="Transcript of the reference audio (improves accuracy)..." class="w-full px-3 py-2.5 rounded-xl bg-surface-container border border-outline-variant/15 text-xs text-on-surface font-label placeholder:text-on-surface-variant/40 focus:outline-none focus:border-lime/40 resize-none"></textarea>
+                    </div>
+
+                    <!-- Text to Convert -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] text-on-surface-variant font-label tracking-wide">Text to Speak</label>
+                            <span id="char-count" class="text-[10px] text-on-surface-variant/60 font-label tabular-nums">0 / 5,000</span>
+                        </div>
+                        <textarea id="gen-text" rows="5" maxlength="5000" placeholder="Enter the text you want spoken in the cloned voice..." class="w-full px-3 py-2.5 rounded-xl bg-surface-container border border-outline-variant/15 text-xs text-on-surface font-label placeholder:text-on-surface-variant/40 focus:outline-none focus:border-lime/40 resize-none leading-relaxed"></textarea>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="p-4 rounded-xl bg-secondary/5 border-l-[3px] border-l-secondary/60 border border-outline-variant/10 space-y-2">
+                        <div class="flex items-start gap-2.5">
+                            <span class="material-symbols-outlined text-base text-secondary mt-0.5">info</span>
+                            <p class="text-[11px] text-on-surface-variant/80 font-label leading-relaxed">
+                                Upload a reference audio clip (5-15 sec recommended) and the AI will clone that voice to speak your text. Providing a transcript of the reference audio improves accuracy.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Cost display -->
+                    <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-surface-container/80 border border-outline-variant/10">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-on-surface-variant">schedule</span>
+                            <span class="text-[11px] text-on-surface-variant font-label">~15 sec</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-lime">token</span>
+                            <span id="cost-label" class="text-[11px] text-lime font-bold font-label">100 credits</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-outline-variant/10 space-y-3">
+                    <button id="process-btn" disabled
+                        class="w-full shadow-[0_0_20px_rgba(184,241,71,0.25)] px-6 py-4 rounded-xl bg-gradient-to-r from-lime to-[#8bc926] text-black font-bold text-sm tracking-tight flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                        <span class="material-symbols-outlined text-lg">record_voice_over</span>
+                        Clone Voice
+                    </button>
+                    <div class="flex justify-center">
+                        <div class="px-3 py-1 rounded-full bg-surface-container/80 border border-outline-variant/10 flex items-center gap-2">
+                            <div id="status-dot" class="w-1.5 h-1.5 rounded-full bg-lime animate-pulse"></div>
+                            <span id="status-text" class="text-[10px] font-label text-on-surface-variant">Upload reference audio to start</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center — Result Area -->
+            <section class="flex-1 relative overflow-hidden">
+                <div id="viewport" class="absolute inset-0 bg-background flex items-center justify-center">
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="flex flex-col items-center gap-3 opacity-30">
+                        <span class="material-symbols-outlined text-5xl text-on-surface-variant">record_voice_over</span>
+                        <span class="text-sm text-on-surface-variant font-label">Upload a reference audio and enter text to clone</span>
+                    </div>
+
+                    <!-- Loading -->
+                    <div id="loader" class="hidden absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-20">
+                        <div class="flex flex-col items-center gap-3">
+                            <svg class="animate-spin w-8 h-8 text-lime" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span class="text-xs text-on-surface-variant font-label">Cloning voice...</span>
+                        </div>
+                    </div>
+
+                    <!-- Result Player -->
+                    <div id="result-view" class="hidden w-full max-w-lg px-6">
+                        <div class="rounded-2xl bg-surface-container border border-outline-variant/10 p-6 space-y-5">
+                            <!-- Header -->
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-lime/10 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-lime text-2xl">graphic_eq</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-headline font-bold text-on-surface">Cloned Audio</h3>
+                                    <p id="result-meta" class="text-[10px] text-on-surface-variant font-label"></p>
+                                </div>
+                            </div>
+
+                            <!-- Waveform / Player -->
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <button id="result-play-btn" class="w-10 h-10 rounded-full bg-lime flex items-center justify-center text-black hover:brightness-110 transition-all active:scale-95">
+                                        <span class="material-symbols-outlined text-xl">play_arrow</span>
+                                    </button>
+                                    <div class="flex-1 space-y-1">
+                                        <input id="result-seek" type="range" min="0" max="100" value="0" class="audio-range w-full" />
+                                        <div class="flex justify-between">
+                                            <span id="result-current-time" class="text-[10px] text-on-surface-variant font-label tabular-nums">0:00</span>
+                                            <span id="result-total-time" class="text-[10px] text-on-surface-variant font-label tabular-nums">0:00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2">
+                                <button id="result-download" class="flex-1 px-4 py-2.5 rounded-xl bg-lime/15 text-lime border border-lime/20 text-xs font-label font-medium flex items-center justify-center gap-1.5 hover:bg-lime/25 transition-colors">
+                                    <span class="material-symbols-outlined text-sm">download</span>
+                                    Download WAV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel — History -->
+            <aside class="w-72 min-w-[288px] flex flex-col bg-[#131315] border-l border-outline-variant/10">
+                <div class="px-5 pt-5 pb-3">
+                    <h2 class="text-sm font-bold font-headline tracking-tight text-on-surface">Recent Results</h2>
+                </div>
+                <div id="history-list" class="flex-1 overflow-y-auto panel-scroll px-5 pb-5 space-y-2">
+                    <div id="history-empty" class="flex flex-col items-center justify-center h-full opacity-40">
+                        <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">record_voice_over</span>
+                        <span class="text-xs text-on-surface-variant font-label text-center">No results yet.<br/>Clone a voice to get started!</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Hidden audio elements -->
+    <audio id="preview-audio" class="hidden"></audio>
+    <audio id="result-audio" class="hidden"></audio>
+
+    <script src="/app/shared/cross-use.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -156,6 +156,7 @@ router.post('/process', async (req, res) => {
         });
 
     } catch (err) {
+        console.error(err);
         log.error('Upscale failed', { error: err.message });
         if (err.body) log.error('API error detail', { body: err.body });
         await User.updateOne({ _id: user._id }, { $inc: { credits: COST_UPSCALER, totalCreditsUsed: -COST_UPSCALER } });

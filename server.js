@@ -58,6 +58,10 @@ const VECTORIZE_DIR = path.join(TEMP_DIR, '_vectorize');
 if (!fs.existsSync(VECTORIZE_DIR)) fs.mkdirSync(VECTORIZE_DIR, { recursive: true });
 app.use('/vectorize', express.static(VECTORIZE_DIR));
 
+const VOICECLONER_DIR = path.join(TEMP_DIR, '_voicecloner');
+if (!fs.existsSync(VOICECLONER_DIR)) fs.mkdirSync(VOICECLONER_DIR, { recursive: true });
+app.use('/voicecloner', express.static(VOICECLONER_DIR));
+
 // ---------------------------------------------------------
 // Routes
 // ---------------------------------------------------------
@@ -67,6 +71,7 @@ app.use('/api/3d-model-generator', require('./functions/routes/3d-model-generato
 app.use('/api/remove-bg', require('./functions/routes/remove-bg'));
 app.use('/api/image-upscaler', require('./functions/routes/image-upscaler'));
 app.use('/api/image-vectorize', require('./functions/routes/image-vectorize'));
+app.use('/api/voice-cloner', require('./functions/routes/voice-cloner'));
 app.use('/api/tool-history', require('./functions/routes/tool-history'));
 
 // Shared credit balance endpoint

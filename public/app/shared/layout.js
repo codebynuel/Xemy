@@ -19,6 +19,7 @@
         { page: 'removebg',  href: '/app/remove.bg/',        icon: 'content_cut',             label: 'Remove Background' },
         { page: 'upscaler',   href: '/app/image.upscaler/',   icon: 'photo_size_select_large', label: 'Image Upscaler'    },
         { page: 'vectorize', href: '/app/image.vectorize/',  icon: 'polyline',                label: 'Image Vectorizer'  },
+        { page: 'voicecloner', href: '/app/voice.cloner/',  icon: 'record_voice_over',       label: 'Voice Cloner'      },
     ];
 
     // ── Sidebar ───────────────────────────────────────────────────────────────
