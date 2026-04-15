@@ -593,9 +593,13 @@ function bindExportButton() {
 
 // --- Logout ---
 function bindLogout() {
-    document.getElementById('logout-btn')?.addEventListener('click', async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.replace('/auth/index.html');
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#logout-btn')) {
+            e.preventDefault();
+            fetch('/api/auth/logout', { method: 'POST' }).then(() => {
+                window.location.replace('/auth/index.html');
+            });
+        }
     });
 }
 

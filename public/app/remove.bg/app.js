@@ -22,9 +22,13 @@ function updateCreditUI() {
     document.getElementById('cost-label').textContent = `${cost} credits`;
 }
 
-document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/auth/';
+document.addEventListener('click', (e) => {
+    if (e.target.closest('#logout-btn')) {
+        e.preventDefault();
+        fetch('/api/auth/logout', { method: 'POST' }).then(() => {
+            window.location.href = '/auth/';
+        });
+    }
 });
 
 // --- Image Upload ---
@@ -155,7 +159,6 @@ let viewMode = 'compare'; // 'compare' | 'result' | 'edit'
 function showResult(originalSrc, resultUrl) {
     currentResultUrl = resultUrl;
     currentOriginalSrc = originalSrc;
-    viewMode = 'compare';
 
     const resultView = document.getElementById('result-view');
     const resultImg = document.getElementById('result-img');
@@ -169,23 +172,34 @@ function showResult(originalSrc, resultUrl) {
     toolbar.classList.remove('hidden');
     document.getElementById('empty-state').classList.add('hidden');
 
-    // Reset compare slider to 50%
-    requestAnimationFrame(() => initCompareSlider());
-    updateToolbarButtons();
+    // Auto-enter edit mode so eraser/restorer tools are immediately visible
+    enterEditMode();
 }
 
 // --- Before/After Compare Slider ---
+let _sliderAbort = null;
+let _sliderPct = 0;
+
 function initCompareSlider() {
+    // Tear down previous listeners
+    if (_sliderAbort) _sliderAbort.abort();
+    _sliderAbort = new AbortController();
+    const signal = _sliderAbort.signal;
+
     const container = document.getElementById('compare-container');
     const overlay = document.getElementById('compare-overlay');
     const handle = document.getElementById('compare-handle');
-    const originalOverlay = document.getElementById('original-overlay');
 
-    const w = container.offsetWidth;
-    originalOverlay.style.width = w + 'px';
-    overlay.style.setProperty('--full-width', w + 'px');
+    function setSliderPosition(pct) {
+        _sliderPct = pct;
+        const w = container.offsetWidth;
+        if (w === 0) return;
+        const clipRight = (1 - pct) * 100;
+        overlay.style.clipPath = `inset(0 ${clipRight}% 0 0)`;
+        handle.style.left = (w * pct) + 'px';
+    }
 
-    setSliderPosition(0.5);
+    setSliderPosition(_sliderPct);
 
     let dragging = false;
     const onMove = (e) => {
@@ -196,18 +210,13 @@ function initCompareSlider() {
         setSliderPosition(pct);
     };
 
-    container.addEventListener('mousedown', (e) => { dragging = true; onMove(e); });
-    container.addEventListener('touchstart', (e) => { dragging = true; onMove(e); }, { passive: true });
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('mouseup', () => dragging = false);
-    window.addEventListener('touchend', () => dragging = false);
-
-    function setSliderPosition(pct) {
-        const px = w * pct;
-        overlay.style.width = px + 'px';
-        handle.style.left = px + 'px';
-    }
+    container.addEventListener('mousedown', (e) => { dragging = true; onMove(e); }, { signal });
+    container.addEventListener('touchstart', (e) => { dragging = true; onMove(e); }, { passive: true, signal });
+    window.addEventListener('mousemove', onMove, { signal });
+    window.addEventListener('touchmove', onMove, { passive: true, signal });
+    window.addEventListener('mouseup', () => { dragging = false; }, { signal });
+    window.addEventListener('touchend', () => { dragging = false; }, { signal });
+    window.addEventListener('resize', () => setSliderPosition(_sliderPct), { signal });
 }
 
 // --- Toolbar ---
@@ -216,12 +225,16 @@ document.getElementById('btn-compare').addEventListener('click', () => {
     viewMode = 'compare';
     document.getElementById('compare-overlay').classList.remove('hidden');
     document.getElementById('compare-handle').classList.remove('hidden');
+    _sliderPct = 0.5;
+    requestAnimationFrame(() => initCompareSlider());
     updateToolbarButtons();
 });
 
 document.getElementById('btn-result-only').addEventListener('click', () => {
     if (viewMode === 'edit') exitEditMode();
     viewMode = 'result';
+    document.getElementById('compare-container').classList.remove('hidden');
+    document.getElementById('edit-container').classList.add('hidden');
     document.getElementById('compare-overlay').classList.add('hidden');
     document.getElementById('compare-handle').classList.add('hidden');
     updateToolbarButtons();
@@ -278,12 +291,18 @@ document.getElementById('btn-download').addEventListener('click', () => {
     }
 });
 
-// --- History (session only, stored in memory) ---
-const history = [];
+// --- History (persisted to localStorage) ---
+const HISTORY_KEY = 'xemy_removebg_history';
+const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+
+function saveHistory() {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch {}
+}
 
 function addToHistory(originalSrc, resultUrl) {
     history.unshift({ originalSrc, resultUrl, timestamp: Date.now() });
     if (history.length > 20) history.pop();
+    saveHistory();
     renderHistory();
 }
 
@@ -398,7 +417,7 @@ async function enterEditMode() {
     editState.maskCanvas.height = editState.imgH;
     editState.maskCtx = editState.maskCanvas.getContext('2d', { willReadFrequently: true });
 
-    // Draw result to extract alpha → fill mask white where alpha > 0
+    // Draw result to extract alpha → mask alpha channel controls visibility
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = editState.imgW;
     tempCanvas.height = editState.imgH;
@@ -408,10 +427,10 @@ async function enterEditMode() {
     const maskData = editState.maskCtx.createImageData(editState.imgW, editState.imgH);
     for (let i = 0; i < imgData.data.length; i += 4) {
         const a = imgData.data[i + 3];
-        maskData.data[i] = a;     // R
-        maskData.data[i + 1] = a; // G
-        maskData.data[i + 2] = a; // B
-        maskData.data[i + 3] = 255;
+        maskData.data[i] = 255;       // R
+        maskData.data[i + 1] = 255;   // G
+        maskData.data[i + 2] = 255;   // B
+        maskData.data[i + 3] = a;     // A = foreground alpha
     }
     editState.maskCtx.putImageData(maskData, 0, 0);
 
@@ -469,6 +488,7 @@ function applyEdits() {
     viewMode = 'compare';
     document.getElementById('compare-overlay').classList.remove('hidden');
     document.getElementById('compare-handle').classList.remove('hidden');
+    _sliderPct = 0.5;
     requestAnimationFrame(() => initCompareSlider());
     updateToolbarButtons();
     setStatus('ready', 'Edits applied! Download or continue editing');
@@ -878,3 +898,4 @@ window.addEventListener('resize', () => {
 
 // --- Init ---
 checkAuth();
+renderHistory();
