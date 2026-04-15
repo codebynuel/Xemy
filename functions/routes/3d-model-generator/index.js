@@ -10,6 +10,7 @@ const {
     PUBLIC_URL, LOCAL_URL
 } = require('../../config');
 const { generateImageFromText, downloadImageAsThumb } = require('./helpers');
+const log = require('../../logger')('3d-gen');
 
 const TEMP_DIR   = path.join(__dirname, '../../../temp_models');
 const THUMB_DIR  = path.join(__dirname, '../../../temp_models/_thumbnails');
@@ -95,7 +96,7 @@ router.post('/generate', async (req, res) => {
             creditCost
         });
     } catch (dbErr) {
-        console.error('Failed to create generation record:', dbErr);
+        log.error('Failed to create generation record', { error: dbErr.message });
         return res.status(500).json({ error: 'Database error' });
     }
 
@@ -105,7 +106,7 @@ router.post('/generate', async (req, res) => {
         // Text mode: generate reference image via fal.ai FLUX first
         if (mode === 'text') {
             io.to(safeSessionId).emit('generation_status', { status: 'GENERATING_IMAGE' });
-            console.log(`   FLUX: generating reference image for "${prompt.slice(0, 50)}"`);
+            log.info('Generating reference image via FLUX', { prompt: prompt.slice(0, 80) });
             referenceImageUrl = await generateImageFromText(prompt);
 
             const thumbnailUrl = await downloadImageAsThumb(referenceImageUrl, generation._id.toString());
@@ -114,6 +115,7 @@ router.post('/generate', async (req, res) => {
 
         // Submit to fal.ai TRELLIS (single or multi-image)
         io.to(safeSessionId).emit('generation_status', { status: 'IN_QUEUE' });
+        log.api('TRELLIS', 'submitting', { isMultiImage, endpoint: trellisEndpoint });
 
         const TRELLIS_URI = process.env.TRELLIS_URI;
         const trellisEndpoint = isMultiImage
@@ -137,12 +139,14 @@ router.post('/generate', async (req, res) => {
         const statusUrl = submitData.status_url;
         const responseUrl = submitData.response_url;
         if (!requestId || !statusUrl || !responseUrl) {
+            log.error('TRELLIS did not return queue URLs', { submitData });
             await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
             await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
             return res.status(500).json({ error: 'Failed to generate model' });
         }
 
         res.status(200).json({ jobId: requestId, status: 'IN_QUEUE', generationId: generation._id, credits: deducted.credits });
+        log.info('Generation queued', { requestId: requestId.slice(0, 8), mode, generationId: generation._id.toString(), credits: deducted.credits });
 
         // Poll fal.ai every 5s until the job finishes
         let pollDone = false;
@@ -161,6 +165,7 @@ router.post('/generate', async (req, res) => {
                 if (status === 'COMPLETED') {
                     pollDone = true;
                     clearInterval(poll);
+                    log.info('TRELLIS generation completed', { requestId: requestId.slice(0, 8) });
 
                     const resultRes = await fetch(responseUrl, {
                         headers: { 'Authorization': `Key ${FAL_KEY}` }
@@ -226,12 +231,12 @@ router.post('/generate', async (req, res) => {
                     io.to(safeSessionId).emit('generation_failed', { error: pollData.error, credits: refunded?.credits });
                 }
             } catch (pollError) {
-                console.error(`Polling error for request ${requestId}:`, pollError);
+                log.error('Polling error', { requestId: requestId.slice(0, 8), error: pollError.message });
             }
         }, 5000);
 
     } catch (error) {
-        console.error('Generation error:', error);
+        log.error('Generation error', { error: error.message, mode, generationId: generation?._id?.toString() });
         await Generation.findByIdAndUpdate(generation._id, { status: 'failed' });
         await User.updateOne({ _id: user._id }, { $inc: { credits: creditCost, totalCreditsUsed: -creditCost } });
         const refunded = await User.findById(user._id);
@@ -269,7 +274,7 @@ router.post('/generations/:id/apply-texture', async (req, res) => {
 
         res.json({ success: true, credits: deducted.credits });
     } catch (err) {
-        console.error('Apply texture error:', err);
+        log.error('Apply texture error', { error: err.message, generationId: req.params.id });
         res.status(500).json({ error: 'Failed to apply texture' });
     }
 });

@@ -109,7 +109,6 @@ async function handleFile(file) {
         setStatus('ready', 'Ready — click Remove Background');
     } catch (err) {
         setStatus('error', err.message);
-        resetUpload();
     }
 }
 

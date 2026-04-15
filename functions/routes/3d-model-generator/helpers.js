@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const log = require('../../logger')('3d-helpers');
 
 const THUMB_DIR = path.join(__dirname, '../../../temp_models/_thumbnails');
 
@@ -16,6 +17,7 @@ async function generateImageFromText(prompt) {
         body: JSON.stringify({ prompt, image_size: 'square_hd', num_images: 1 })
     });
     const submitData = await submitRes.json();
+    log.api('FLUX', 'submitted', { hasDirectImage: !!submitData.images?.[0]?.url });
 
     if (submitData.images?.[0]?.url) return submitData.images[0].url;
 
@@ -49,7 +51,7 @@ async function downloadImageAsThumb(imageUrl, generationId) {
         fs.writeFileSync(thumbPath, buffer);
         return `/thumbnails/${thumbFileName}`;
     } catch (err) {
-        console.error('Thumbnail download failed:', err);
+        log.error('Thumbnail download failed', { error: err.message, imageUrl });
         return '';
     }
 }

@@ -11,9 +11,11 @@ const cookieParser = require('cookie-parser');
 // Connect to MongoDB
 require('./functions/db');
 
+const log = require('./functions/logger')('server');
+
 const {
     CREDITS_FREE, PLAN_CREDITS,
-    COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE, COST_REMOVE_BG
+    COST_TEXT_TO_3D, COST_IMAGE_TO_3D, COST_MULTI_IMAGE_TO_3D, COST_TEXTURE, COST_REMOVE_BG, COST_UPSCALER, COST_VECTORIZE
 } = require('./functions/config');
 const authenticateRequest = require('./functions/middleware/auth');
 const { User } = require('./functions/models');
@@ -48,6 +50,14 @@ const REMOVEBG_DIR = path.join(TEMP_DIR, '_removebg');
 if (!fs.existsSync(REMOVEBG_DIR)) fs.mkdirSync(REMOVEBG_DIR, { recursive: true });
 app.use('/removebg', express.static(REMOVEBG_DIR));
 
+const UPSCALER_DIR = path.join(TEMP_DIR, '_upscaler');
+if (!fs.existsSync(UPSCALER_DIR)) fs.mkdirSync(UPSCALER_DIR, { recursive: true });
+app.use('/upscaler', express.static(UPSCALER_DIR));
+
+const VECTORIZE_DIR = path.join(TEMP_DIR, '_vectorize');
+if (!fs.existsSync(VECTORIZE_DIR)) fs.mkdirSync(VECTORIZE_DIR, { recursive: true });
+app.use('/vectorize', express.static(VECTORIZE_DIR));
+
 // ---------------------------------------------------------
 // Routes
 // ---------------------------------------------------------
@@ -55,6 +65,8 @@ app.use('/api/auth', require('./functions/routes/auth'));
 app.use('/api/3d-model-generator', require('./functions/routes/3d-model-generator'));
 
 app.use('/api/remove-bg', require('./functions/routes/remove-bg'));
+app.use('/api/image-upscaler', require('./functions/routes/image-upscaler'));
+app.use('/api/image-vectorize', require('./functions/routes/image-vectorize'));
 
 // Shared credit balance endpoint
 app.get('/api/credits', async (req, res) => {
@@ -73,7 +85,7 @@ app.get('/api/credits', async (req, res) => {
         credits: user.credits,
         plan: user.plan,
         creditsResetAt: user.creditsResetAt,
-        costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D, texture: COST_TEXTURE, removeBg: COST_REMOVE_BG }
+        costs: { text: COST_TEXT_TO_3D, image: COST_IMAGE_TO_3D, multiImage: COST_MULTI_IMAGE_TO_3D, texture: COST_TEXTURE, removeBg: COST_REMOVE_BG, upscaler: COST_UPSCALER, vectorize: COST_VECTORIZE }
     });
 });
 
@@ -81,18 +93,18 @@ app.get('/api/credits', async (req, res) => {
 // WebSocket connections
 // ---------------------------------------------------------
 io.on('connection', (socket) => {
-    console.log(`🔌 New client connected: ${socket.id}`);
+    log.info('WebSocket client connected', { socketId: socket.id });
 
     socket.on('register_session', (sessionId) => {
         socket.join(sessionId);
-        console.log(`User joined session room: ${sessionId}`);
+        log.info('Session registered', { socketId: socket.id, sessionId });
     });
 
-    socket.on('disconnect', () => console.log(`Client disconnected`));
+    socket.on('disconnect', () => log.info('WebSocket client disconnected', { socketId: socket.id }));
 });
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 Real-Time Xemy Backend on http://localhost:${PORT}`));
+server.listen(PORT, () => log.info(`Xemy server started`, { port: PORT, url: `http://localhost:${PORT}` }));

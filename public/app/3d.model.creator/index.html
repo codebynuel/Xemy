@@ -102,6 +102,17 @@
                             class="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-lime/50 focus:border-lime/30 resize-none transition-all"
                             placeholder="Describe the 3D model you want to forge..."></textarea>
                     </div>
+
+                    <!-- Info -->
+                    <div class="p-4 rounded-xl bg-secondary/5 border-l-[3px] border-l-secondary/60 border border-outline-variant/10 space-y-2">
+                        <div class="flex items-start gap-2.5">
+                            <span class="material-symbols-outlined text-base text-secondary mt-0.5">info</span>
+                            <p class="text-[11px] text-on-surface-variant/80 font-label leading-relaxed">
+                                Generates a 3D model from your text description. Be specific about shape, style, and details for best results. Output is a downloadable GLB file.
+                            </p>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 flex items-center gap-1 block">
                             Name <span class="text-on-surface-variant/40 text-[10px]">(optional)</span>
@@ -176,6 +187,17 @@
                         <input id="multi-image-file-input" type="file" accept="image/png,image/jpeg,image/webp" multiple class="hidden" />
                         <button id="multi-image-clear-all" class="hidden mt-2 text-[10px] text-error hover:text-error-dim mx-auto block">Clear all images</button>
                     </div>
+
+                    <!-- Info -->
+                    <div class="p-4 rounded-xl bg-secondary/5 border-l-[3px] border-l-secondary/60 border border-outline-variant/10 space-y-2">
+                        <div class="flex items-start gap-2.5">
+                            <span class="material-symbols-outlined text-base text-secondary mt-0.5">info</span>
+                            <p class="text-[11px] text-on-surface-variant/80 font-label leading-relaxed">
+                                Creates a 3D model from one or more reference images. Use a single clear image or up to 5 images from different angles for more accurate geometry.
+                            </p>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="text-[11px] text-on-surface-variant font-label tracking-wide mb-1.5 flex items-center gap-1 block">
                             Name <span class="text-on-surface-variant/40 text-[10px]">(optional)</span>

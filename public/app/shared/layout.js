@@ -16,7 +16,9 @@
     // ── Tool nav entries — edit here to add/remove tools ─────────────────────
     const NAV_LINKS = [
         { page: '3d',       href: '/app/3d.model.creator/', icon: 'view_in_ar',  label: '3D Model Creator'  },
-        { page: 'removebg', href: '/app/remove.bg/',        icon: 'content_cut', label: 'Remove Background' },
+        { page: 'removebg',  href: '/app/remove.bg/',        icon: 'content_cut',             label: 'Remove Background' },
+        { page: 'upscaler',   href: '/app/image.upscaler/',   icon: 'photo_size_select_large', label: 'Image Upscaler'    },
+        { page: 'vectorize', href: '/app/image.vectorize/',  icon: 'polyline',                label: 'Image Vectorizer'  },
     ];
 
     // ── Sidebar ───────────────────────────────────────────────────────────────
