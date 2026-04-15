@@ -67,6 +67,7 @@ app.use('/api/3d-model-generator', require('./functions/routes/3d-model-generato
 app.use('/api/remove-bg', require('./functions/routes/remove-bg'));
 app.use('/api/image-upscaler', require('./functions/routes/image-upscaler'));
 app.use('/api/image-vectorize', require('./functions/routes/image-vectorize'));
+app.use('/api/tool-history', require('./functions/routes/tool-history'));
 
 // Shared credit balance endpoint
 app.get('/api/credits', async (req, res) => {

@@ -98,6 +98,13 @@
                             </div>
                             <input id="file-input" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" />
                         </div>
+                        <!-- URL Input -->
+                        <div class="mt-3 flex gap-2">
+                            <input id="url-input" type="url" placeholder="Or paste an image URL..." class="flex-1 px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/15 text-xs text-on-surface font-label placeholder:text-on-surface-variant/40 focus:outline-none focus:border-lime/40" />
+                            <button id="url-submit" class="px-3 py-2 rounded-lg bg-surface-container-high hover:bg-lime/10 border border-outline-variant/15 text-on-surface-variant hover:text-lime transition-colors" title="Load from URL">
+                                <span class="material-symbols-outlined text-sm">link</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Scale selector -->
@@ -211,7 +218,7 @@
         </div>
     </div>
 
+    <script src="/app/shared/cross-use.js"></script>
     <script src="app.js"></script>
-    <script>checkAuth();</script>
 </body>
 </html>

@@ -1,0 +1,7 @@
+{
+    "actions": [
+        { "label": "Upscale this image", "shortLabel": "Upscale", "icon": "photo_size_select_large", "href": "/app/image.upscaler/", "tool": "upscaler" },
+        { "label": "Vectorize this image", "shortLabel": "Vectorize", "icon": "polyline", "href": "/app/image.vectorize/", "tool": "vectorize" },
+        { "label": "Use as 3D input", "shortLabel": "3D", "icon": "view_in_ar", "href": "/app/3d.model.creator/", "tool": "3d" }
+    ]
+}

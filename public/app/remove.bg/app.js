@@ -140,6 +140,7 @@ processBtn.addEventListener('click', async () => {
 
         showResult(originalPreviewSrc, data.resultUrl);
         addToHistory(originalPreviewSrc, data.resultUrl);
+        XemyCrossUse.showActions(data.resultUrl);
         setStatus('ready', 'Done! Download your result or try another image');
     } catch (err) {
         setStatus('error', err.message);
@@ -290,50 +291,77 @@ document.getElementById('btn-download').addEventListener('click', () => {
     }
 });
 
-// --- History (persisted to localStorage) ---
-const HISTORY_KEY = 'xemy_removebg_history';
-const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-
-function saveHistory() {
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch {}
+// --- History (server-backed) ---
+async function loadHistory() {
+    try {
+        const res = await fetch('/api/tool-history/removebg');
+        if (!res.ok) return;
+        const items = await res.json();
+        renderHistory(items);
+    } catch {}
 }
 
-function addToHistory(originalSrc, resultUrl) {
-    history.unshift({ originalSrc, resultUrl, timestamp: Date.now() });
-    if (history.length > 20) history.pop();
-    saveHistory();
-    renderHistory();
-}
-
-function renderHistory() {
+function renderHistory(items) {
     const list = document.getElementById('history-list');
     const empty = document.getElementById('history-empty');
-
-    if (!history.length) {
-        empty.classList.remove('hidden');
-        list.querySelectorAll('.history-card').forEach(c => c.remove());
-        return;
-    }
-    empty.classList.add('hidden');
 
     // Remove old cards
     list.querySelectorAll('.history-card').forEach(c => c.remove());
 
-    for (const item of history) {
+    if (!items || !items.length) {
+        if (empty) empty.classList.remove('hidden');
+        return;
+    }
+    if (empty) empty.classList.add('hidden');
+
+    for (const item of items) {
         const card = document.createElement('div');
         card.className = 'history-card group relative rounded-xl overflow-hidden border border-outline-variant/15 cursor-pointer hover:border-lime/30 transition-colors';
         card.innerHTML = `
             <div class="flex gap-2 p-2">
-                <img src="${item.originalSrc}" class="w-16 h-16 rounded-lg object-cover bg-surface-container-high" />
+                <img src="${item.originalUrl}" class="w-16 h-16 rounded-lg object-cover bg-surface-container-high" />
                 <img src="${item.resultUrl}" class="w-16 h-16 rounded-lg object-contain checkerboard" />
             </div>
-            <div class="px-2 pb-2">
-                <span class="text-[10px] text-on-surface-variant/60 font-label">${new Date(item.timestamp).toLocaleTimeString()}</span>
+            <div class="px-2 pb-2 flex items-center justify-between">
+                <span class="text-[10px] text-on-surface-variant/60 font-label">${new Date(item.createdAt).toLocaleTimeString()}</span>
+                <button class="delete-history opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-error/20 text-on-surface-variant/40 hover:text-error transition-all" title="Delete">
+                    <span class="material-symbols-outlined text-xs">close</span>
+                </button>
             </div>
         `;
-        card.addEventListener('click', () => showResult(item.originalSrc, item.resultUrl));
+        card.querySelector('.delete-history').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await fetch(`/api/tool-history/${item._id}`, { method: 'DELETE' });
+            card.remove();
+            if (!list.querySelectorAll('.history-card').length && empty) empty.classList.remove('hidden');
+        });
+        card.addEventListener('click', () => showResult(item.originalUrl, item.resultUrl));
         list.appendChild(card);
     }
+}
+
+function addToHistory(originalSrc, resultUrl) {
+    // Prepend to DOM immediately
+    const list = document.getElementById('history-list');
+    const empty = document.getElementById('history-empty');
+    if (empty) empty.classList.add('hidden');
+
+    const card = document.createElement('div');
+    card.className = 'history-card group relative rounded-xl overflow-hidden border border-outline-variant/15 cursor-pointer hover:border-lime/30 transition-colors';
+    card.innerHTML = `
+        <div class="flex gap-2 p-2">
+            <img src="${originalSrc}" class="w-16 h-16 rounded-lg object-cover bg-surface-container-high" />
+            <img src="${resultUrl}" class="w-16 h-16 rounded-lg object-contain checkerboard" />
+        </div>
+        <div class="px-2 pb-2">
+            <span class="text-[10px] text-on-surface-variant/60 font-label">${new Date().toLocaleTimeString()}</span>
+        </div>
+    `;
+    card.addEventListener('click', () => showResult(originalSrc, resultUrl));
+    // Insert before the first card, or just append
+    const firstCard = list.querySelector('.history-card');
+    if (firstCard) list.insertBefore(card, firstCard);
+    else list.appendChild(card);
 }
 
 // --- Status ---
@@ -895,6 +923,47 @@ window.addEventListener('resize', () => {
     cursorCanvas.height = rect.height;
 });
 
+// --- URL Input ---
+async function handleUrl(url) {
+    setStatus('busy', 'Loading image from URL...');
+    try {
+        const res = await fetch('/api/remove-bg/upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'URL upload failed');
+        }
+        const data = await res.json();
+        uploadedImageUrl = data.imageUrl;
+        imagePreview.src = url;
+        originalPreviewSrc = url;
+        previewContainer.classList.remove('hidden');
+        uploadPrompt.classList.add('hidden');
+        processBtn.disabled = false;
+        setStatus('ready', 'Ready — click Remove Background');
+    } catch (err) {
+        setStatus('error', err.message);
+    }
+}
+
+document.getElementById('url-submit').addEventListener('click', () => {
+    const url = document.getElementById('url-input').value.trim();
+    if (url) handleUrl(url);
+});
+
+document.getElementById('url-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const url = e.target.value.trim();
+        if (url) handleUrl(url);
+    }
+});
+
 // --- Init ---
-checkAuth();
-renderHistory();
+checkAuth().then(() => {
+    loadHistory();
+    const incoming = XemyCrossUse.receive();
+    if (incoming) handleUrl(incoming.url);
+});

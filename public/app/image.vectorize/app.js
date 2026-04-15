@@ -142,6 +142,7 @@ processBtn.addEventListener('click', async () => {
         currentSvgUrl = data.resultUrl;
         showResult(originalPreviewSrc, data.resultUrl, data.fileSize);
         addToHistory(originalPreviewSrc, data.resultUrl);
+        XemyCrossUse.showActions(data.resultUrl);
         setStatus('ready', 'Done! Download your SVG file');
     } catch (err) {
         setStatus('error', err.message);
@@ -274,7 +275,51 @@ document.getElementById('download-svg-btn').addEventListener('click', async () =
     }
 });
 
-// --- History ---
+// --- History (server-backed) ---
+async function loadHistory() {
+    try {
+        const res = await fetch('/api/tool-history/vectorize');
+        if (!res.ok) return;
+        const items = await res.json();
+        renderHistory(items);
+    } catch {}
+}
+
+function renderHistory(items) {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    if (!items.length) {
+        list.innerHTML = '<p class="text-[10px] text-on-surface-variant/30 text-center pt-8 font-label">No vectorizations yet</p>';
+        return;
+    }
+    for (const item of items) {
+        const el = document.createElement('div');
+        el.className = 'flex items-center gap-2 p-2 rounded-xl bg-surface-container/60 border border-outline-variant/10 cursor-pointer hover:bg-surface-container-high/80 transition-colors group';
+        el.innerHTML = `
+            <img src="${item.originalUrl}" class="w-12 h-12 rounded-lg object-cover border border-outline-variant/10" />
+            <div class="flex-1 min-w-0">
+                <p class="text-[10px] text-on-surface-variant font-label truncate">Vectorized → SVG</p>
+                <p class="text-[9px] text-on-surface-variant/40 font-label">${new Date(item.createdAt).toLocaleTimeString()}</p>
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[8px] bg-secondary/20 text-secondary font-bold font-label">SVG</span>
+            <button class="delete-history opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-error/20 text-on-surface-variant/40 hover:text-error transition-all" title="Delete">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        `;
+        el.querySelector('.delete-history').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await fetch(`/api/tool-history/${item._id}`, { method: 'DELETE' });
+            el.remove();
+            if (!list.children.length) list.innerHTML = '<p class="text-[10px] text-on-surface-variant/30 text-center pt-8 font-label">No vectorizations yet</p>';
+        });
+        el.addEventListener('click', () => {
+            currentSvgUrl = item.resultUrl;
+            showResult(item.originalUrl, item.resultUrl, item.metadata?.fileSize);
+        });
+        list.appendChild(el);
+    }
+}
+
 function addToHistory(originalSrc, resultUrl) {
     const list = document.getElementById('history-list');
     if (list.querySelector('p')) list.innerHTML = '';
@@ -320,3 +365,48 @@ function setStatus(state, text) {
             icon.classList.add('hidden');
     }
 }
+
+// --- URL Input ---
+async function handleUrl(url) {
+    setStatus('busy', 'Loading image from URL...');
+    try {
+        const res = await fetch('/api/image-vectorize/upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'URL upload failed');
+        }
+        const data = await res.json();
+        uploadedImageUrl = data.imageUrl;
+        imagePreview.src = url;
+        originalPreviewSrc = url;
+        previewContainer.classList.remove('hidden');
+        uploadPrompt.classList.add('hidden');
+        processBtn.disabled = false;
+        setStatus('ready', 'Ready — click Vectorize Image');
+    } catch (err) {
+        setStatus('error', err.message);
+    }
+}
+
+document.getElementById('url-submit').addEventListener('click', () => {
+    const url = document.getElementById('url-input').value.trim();
+    if (url) handleUrl(url);
+});
+
+document.getElementById('url-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const url = e.target.value.trim();
+        if (url) handleUrl(url);
+    }
+});
+
+// --- Init ---
+checkAuth().then(() => {
+    loadHistory();
+    const incoming = XemyCrossUse.receive();
+    if (incoming) handleUrl(incoming.url);
+});
