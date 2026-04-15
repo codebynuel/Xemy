@@ -2,8 +2,8 @@
  * Xemy Cross-Use — link tool results to other tools as input.
  *
  * Each tool has a cross-use.json that lists target tools and their
- * accepted input types. After a result is generated, cross-use buttons
- * appear in the toolbar so the user can send that result to another tool.
+ * accepted input types. After a result is generated, a "What next?"
+ * card appears with links to other tools.
  *
  * Data flow:  Tool A result → sessionStorage → Tool B reads on load.
  *
@@ -20,7 +20,7 @@
 
     const STORAGE_KEY = 'xemy_crossuse';
     let _actions = [];
-    let _container = null;
+    let _card = null;
 
     /** Load cross-use.json for this tool (relative to tool's folder) */
     async function loadConfig() {
@@ -34,58 +34,129 @@
         }
     }
 
-    /** Ensure the button container exists inside toolbar */
-    function ensureContainer() {
-        if (_container) return _container;
-        const toolbar = document.getElementById('toolbar');
-        if (!toolbar) return null;
-
-        // Add separator
-        const sep = document.createElement('div');
-        sep.className = 'w-px h-6 bg-outline-variant/20 mx-1 cross-use-sep hidden';
-        toolbar.appendChild(sep);
-
-        _container = document.createElement('div');
-        _container.id = 'cross-use-actions';
-        _container.className = 'flex items-center gap-1 hidden';
-        toolbar.appendChild(_container);
-        return _container;
+    /** Inject cross-use card styles */
+    function injectStyles() {
+        if (document.getElementById('xemy-crossuse-css')) return;
+        const style = document.createElement('style');
+        style.id = 'xemy-crossuse-css';
+        style.textContent = `
+            .xemy-crossuse-card {
+                position: absolute;
+                bottom: 70px;
+                right: 24px;
+                z-index: 30;
+                width: 220px;
+                background: #19191c;
+                border: 1px solid rgba(72,71,74,0.2);
+                border-radius: 16px;
+                padding: 14px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                animation: crossuse-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            }
+            @keyframes crossuse-in {
+                from { opacity: 0; transform: translateY(8px) scale(0.96); }
+                to   { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            .xemy-crossuse-card .cu-header {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 11px;
+                font-weight: 600;
+                color: #adaaad;
+                letter-spacing: 0.02em;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .xemy-crossuse-card .cu-header .material-symbols-outlined {
+                font-size: 14px;
+                color: #b8f147;
+            }
+            .xemy-crossuse-card .cu-list {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .xemy-crossuse-card .cu-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 10px;
+                border-radius: 10px;
+                border: 1px solid transparent;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                text-decoration: none;
+                color: #f9f5f8;
+            }
+            .xemy-crossuse-card .cu-item:hover {
+                background: rgba(184,241,71,0.08);
+                border-color: rgba(184,241,71,0.2);
+            }
+            .xemy-crossuse-card .cu-item .material-symbols-outlined {
+                font-size: 18px;
+                color: #adaaad;
+                transition: color 0.15s ease;
+            }
+            .xemy-crossuse-card .cu-item:hover .material-symbols-outlined {
+                color: #b8f147;
+            }
+            .xemy-crossuse-card .cu-item-label {
+                font-family: 'Manrope', sans-serif;
+                font-size: 11px;
+                font-weight: 500;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
-    /** Render cross-use action buttons for the given result URL */
+    /** Render cross-use card for the given result URL */
     function showActions(resultUrl) {
-        const container = ensureContainer();
-        if (!container || !_actions.length) return;
+        if (!_actions.length) return;
+        hideActions();
+        injectStyles();
 
-        container.innerHTML = '';
-        container.classList.remove('hidden');
-        const sep = document.querySelector('.cross-use-sep');
-        if (sep) sep.classList.remove('hidden');
+        // Find the main/section viewport area to anchor the card
+        const anchor = document.querySelector('main') || document.querySelector('section.flex-1');
+        if (!anchor) return;
+        anchor.style.position = 'relative';
+
+        _card = document.createElement('div');
+        _card.className = 'xemy-crossuse-card';
+
+        const header = document.createElement('div');
+        header.className = 'cu-header';
+        header.innerHTML = '<span class="material-symbols-outlined">auto_awesome</span> What next?';
+        _card.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'cu-list';
 
         for (const action of _actions) {
-            const btn = document.createElement('button');
-            btn.title = action.label;
-            btn.className = 'p-2 rounded-xl hover:bg-primary/20 text-primary-fixed-dim border border-outline-variant/15 transition-colors flex items-center gap-1';
-            btn.innerHTML = `<span class="material-symbols-outlined text-lg">${action.icon || 'open_in_new'}</span>`;
-            if (action.shortLabel) {
-                const span = document.createElement('span');
-                span.className = 'text-[10px] font-label font-medium hidden sm:inline';
-                span.textContent = action.shortLabel;
-                btn.appendChild(span);
-            }
-            btn.addEventListener('click', () => send(resultUrl, action));
-            container.appendChild(btn);
+            const item = document.createElement('a');
+            item.className = 'cu-item';
+            item.href = '#';
+            item.innerHTML = `
+                <span class="material-symbols-outlined">${action.icon || 'open_in_new'}</span>
+                <span class="cu-item-label">${action.label}</span>
+            `;
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                send(resultUrl, action);
+            });
+            list.appendChild(item);
         }
+
+        _card.appendChild(list);
+        anchor.appendChild(_card);
     }
 
-    /** Hide cross-use actions (e.g. on reset) */
+    /** Hide cross-use card */
     function hideActions() {
-        if (_container) {
-            _container.classList.add('hidden');
-            _container.innerHTML = '';
+        if (_card) {
+            _card.remove();
+            _card = null;
         }
-        const sep = document.querySelector('.cross-use-sep');
-        if (sep) sep.classList.add('hidden');
     }
 
     /** Store result URL in sessionStorage and navigate to target tool */

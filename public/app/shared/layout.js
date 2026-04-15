@@ -104,17 +104,116 @@
         </header>`;
     }
 
-    // ── Inject sidebar CSS (runs once) ────────────────────────────────────────
+    // ── Inject sidebar + panel CSS (runs once) ──────────────────────────────
     function injectCSS() {
         if (document.getElementById('xemy-layout-css')) return;
         const style = document.createElement('style');
         style.id = 'xemy-layout-css';
-        style.textContent = [
-            '#icon-rail { width: 56px; transition: width 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }',
-            '#icon-rail:hover { width: 200px; }',
-            '#icon-rail:hover ~ #app-layout { margin-left: 200px; }',
-        ].join('\n');
+        style.textContent = `
+            #icon-rail { width: 56px; transition: width 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+            #icon-rail:hover { width: 200px; }
+            #icon-rail:hover ~ #app-layout { margin-left: 200px; }
+
+            /* Detached rounded panels */
+            .xemy-panel {
+                margin: 8px;
+                border-radius: 16px;
+                border: 1px solid rgba(72,71,74,0.15);
+                overflow: hidden;
+                transition: width 0.3s cubic-bezier(0.4,0,0.2,1),
+                            min-width 0.3s cubic-bezier(0.4,0,0.2,1),
+                            margin 0.3s cubic-bezier(0.4,0,0.2,1),
+                            opacity 0.2s ease,
+                            padding 0.3s cubic-bezier(0.4,0,0.2,1);
+            }
+            .xemy-panel.collapsed {
+                width: 0 !important;
+                min-width: 0 !important;
+                margin-left: 0;
+                margin-right: 0;
+                padding: 0;
+                opacity: 0;
+                border: 0;
+                pointer-events: none;
+            }
+
+            .xemy-panel-toggle {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 20;
+                width: 20px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #19191c;
+                border: 1px solid rgba(72,71,74,0.2);
+                color: #adaaad;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .xemy-panel-toggle:hover {
+                background: #1f1f22;
+                color: #b8f147;
+                border-color: rgba(184,241,71,0.3);
+            }
+            .xemy-panel-toggle.left {
+                right: -10px;
+                border-radius: 0 8px 8px 0;
+            }
+            .xemy-panel-toggle.right {
+                left: -10px;
+                border-radius: 8px 0 0 8px;
+            }
+            .xemy-panel-toggle .material-symbols-outlined {
+                font-size: 14px;
+                line-height: 1;
+            }
+        `;
         document.head.appendChild(style);
+    }
+
+    // ── Panel toggle setup ──────────────────────────────────────────────────
+    function setupPanels() {
+        // Find content wrapper (the flex row containing panels)
+        const contentRow = document.querySelector('#app-layout .flex.flex-1.overflow-hidden');
+        if (!contentRow) return;
+
+        const asides = contentRow.querySelectorAll(':scope > aside');
+        asides.forEach((aside, i) => {
+            const isLeft = i === 0;
+            const isRight = i === asides.length - 1 && i > 0;
+            if (!isLeft && !isRight) return;
+
+            // Add panel class, remove old border styles
+            aside.classList.add('xemy-panel');
+            aside.classList.remove('border-r', 'border-l', 'border-outline-variant/10');
+
+            // Create wrapper for toggle button positioning
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative flex flex-col';
+            wrapper.style.transition = 'all 0.3s cubic-bezier(0.4,0,0.2,1)';
+            aside.parentNode.insertBefore(wrapper, aside);
+            wrapper.appendChild(aside);
+
+            // Create toggle button
+            const toggle = document.createElement('button');
+            toggle.className = `xemy-panel-toggle ${isLeft ? 'left' : 'right'}`;
+            toggle.innerHTML = `<span class="material-symbols-outlined">${isLeft ? 'chevron_left' : 'chevron_right'}</span>`;
+            toggle.title = isLeft ? 'Toggle controls panel' : 'Toggle history panel';
+            wrapper.appendChild(toggle);
+
+            toggle.addEventListener('click', () => {
+                const collapsed = aside.classList.toggle('collapsed');
+                const icon = toggle.querySelector('.material-symbols-outlined');
+                if (isLeft) {
+                    icon.textContent = collapsed ? 'chevron_right' : 'chevron_left';
+                } else {
+                    icon.textContent = collapsed ? 'chevron_left' : 'chevron_right';
+                }
+            });
+        });
     }
 
     // ── Mount ─────────────────────────────────────────────────────────────────
@@ -136,6 +235,8 @@
             el.innerHTML = buildHeader(activePage);
             headerMount.replaceWith(el.firstElementChild);
         }
+
+        setupPanels();
     }
 
     if (document.readyState === 'loading') {
